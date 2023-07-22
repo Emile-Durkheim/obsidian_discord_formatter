@@ -1,4 +1,4 @@
-import { SETTINGS } from 'main';
+import { log, writeDocumentToFile } from 'utils';
 
 export default function discordMessageToMarkdown(event: ClipboardEvent): string | undefined {
     // Check that there is data in clipboardEvent
@@ -10,8 +10,10 @@ export default function discordMessageToMarkdown(event: ClipboardEvent): string 
     const messageDOM: Document | null = clipboardToDOM(event.clipboardData);
     if(messageDOM === null){
         log("No HTML in paste");
+		return;
     }
 
+	writeDocumentToFile(messageDOM);
     console.log(messageDOM);
 }
 
@@ -28,12 +30,7 @@ function clipboardToDOM(clipboardData: DataTransfer): Document | null {
 
 	const messageDOM: Document = parser.parseFromString(rawHTML, 'text/html');
 
+
 	return messageDOM;
 }
 
-
-function log(object: string | Error): void{
-	if(SETTINGS.debug){
-		console.log(object);
-	}
-}
