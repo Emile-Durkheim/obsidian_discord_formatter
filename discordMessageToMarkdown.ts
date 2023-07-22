@@ -6,19 +6,25 @@ export default function discordMessageToMarkdown(event: ClipboardEvent): string 
 		log("clipboardData empty")
 		return;
 	}
-
-    const messageDOM: Document | null = clipboardToDOM(event.clipboardData);
+    
+    // Parse clipboardEvent into a Document if possible
+    const messageDOM: Document | null = clipboardToDocument(event.clipboardData);
     if(messageDOM === null){
         log("No HTML in paste");
 		return;
     }
 
-	writeDocumentToFile(messageDOM);
-    console.log(messageDOM);
+    // Ensure it's a Discord message
+    log('isDiscordMessage: ', isDiscordMessage(messageDOM));
+    if(!isDiscordMessage(messageDOM)){
+        return;
+    }
+
+
 }
 
 
-function clipboardToDOM(clipboardData: DataTransfer): Document | null {
+function clipboardToDocument(clipboardData: DataTransfer): Document | null {
 	const rawHTML: string | undefined = clipboardData.getData('text/html');
     
     // Ensure rawHTML is defined
@@ -34,3 +40,19 @@ function clipboardToDOM(clipboardData: DataTransfer): Document | null {
 	return messageDOM;
 }
 
+
+function isDiscordMessage(doc: Document){
+	if(doc.body?.firstChild?.nodeName != 'OL'){
+		return false;
+	}
+    
+    // Line above already ensures that <ol> exists
+	// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+	const ol: HTMLElement = doc.body.firstElementChild! as HTMLElement;
+
+	return (
+			ol.dataset.listId == "chat-messages" && 
+            /scrollerInner/.test(ol.className) &&
+            ol.firstElementChild?.nodeName == 'LI'
+	);
+}
