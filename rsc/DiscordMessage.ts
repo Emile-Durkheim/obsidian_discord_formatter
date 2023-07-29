@@ -123,4 +123,21 @@ export default class DiscordMessage {
             throw new CouldNotParseError("messageId and serverId not found in <li> id");
         }
     }
+
+
+    public toMarkdown(): string {
+        const markdownArray: string[] = [];
+
+        if(this.header){
+            const date = new Date(this.header.timeExact);
+
+            markdownArray.push(
+                `**${this.header.nickname} - ${date.toLocaleString()}**`
+            )
+        }
+
+        markdownArray.push(this.content.text);
+
+        return '>' + markdownArray.join("\n>");
+    }
 }

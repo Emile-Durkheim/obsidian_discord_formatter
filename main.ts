@@ -1,8 +1,8 @@
 import { MarkdownView, Plugin } from 'obsidian';
 
 import UnitTests from 'tests/UnitTests';
-// import discordMessageToMarkdown from 'rsc/discordMessageToMarkdown';
-import { writeStringToFile } from 'rsc/utils';
+// import { writeStringToFile } from 'rsc/utils';
+import DiscordConversation from 'rsc/DiscordConversation';
 
 
 interface DiscordFormatterSettings {
@@ -27,22 +27,24 @@ export default class DiscordFormatter extends Plugin {
 		})
 		
 		// Define behaviour on paste
-		this.app.workspace.on('editor-paste', (event) => {})
+		this.app.workspace.on('editor-paste', (event) => { this.pasteDiscordMessageAsMarkdown(event) })
 
 		// Debug
-		this.app.workspace.on('editor-paste', (clipboardEvent) => {
-			console.log(clipboardEvent.clipboardData?.getData('text/html'));
-			writeStringToFile(clipboardEvent.clipboardData?.getData('text/html'));
-		});
+		// this.app.workspace.on('editor-paste', (clipboardEvent) => {
+		// 	console.log(clipboardEvent.clipboardData?.getData('text/html'));
+		// 	writeStringToFile(clipboardEvent.clipboardData?.getData('text/html'));
+		// });
 	}
 
 
 	onunload() {
-		this.app.workspace.off('editor-paste', (event) => {});
-		this.app.workspace.off('editor-paste', (clipboardEvent) => {
-			console.log(clipboardEvent.clipboardData?.getData('text/html'));
-			writeStringToFile(clipboardEvent.clipboardData?.getData('text/html'));
-		});
+		this.app.workspace.off('editor-paste', (event) => { this.pasteDiscordMessageAsMarkdown(event) })
+
+		// Debug
+		// this.app.workspace.off('editor-paste', (clipboardEvent) => {
+		// 	console.log(clipboardEvent.clipboardData?.getData('text/html'));
+		// 	writeStringToFile(clipboardEvent.clipboardData?.getData('text/html'));
+		// });
 	}
 
 
@@ -51,16 +53,21 @@ export default class DiscordFormatter extends Plugin {
 	}
 
 
-	// pasteDiscordMessageAsMarkdown(event: ClipboardEvent){
-	// 	const discordMarkdown = discordMessageToMarkdown(event);
-	// 	console.log(discordMarkdown);
-		
-	// 	if(typeof discordMarkdown == "string"){
-	// 		event.preventDefault();
+	pasteDiscordMessageAsMarkdown(event: ClipboardEvent){
+		const rawHTML = event.clipboardData?.getData('text/html');
+		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 
-	// 		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-	// 		if(view?.editor) view.editor.replaceSelection(discordMarkdown);
-	// 	}
-	// }
+		if(!(rawHTML && view?.editor)){
+			return;
+		}
+		
+		const conversation = DiscordConversation.fromRawHTML(rawHTML);
+		if(conversation.messages.length == 0){
+			return;
+		}
+
+		event.preventDefault();
+		view.editor.replaceSelection(conversation.toMarkdown());
+	}
 }
 

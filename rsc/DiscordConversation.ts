@@ -26,4 +26,20 @@ export default class DiscordConversation {
 
         return new this(DOM);
     }
+
+
+    public toMarkdown(): string {
+        const markdownArray: string[] = [];
+
+        for(const message of this.messages){
+            // Insert blank line between different users
+            if(message.header && markdownArray.length > 0){
+                markdownArray.push(">");
+            }
+
+            markdownArray.push(message.toMarkdown());
+        }
+
+        return markdownArray.join("\n");
+    }
 }
