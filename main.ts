@@ -1,6 +1,7 @@
-import { Editor, MarkdownView, Plugin } from 'obsidian';
-import discordMessageToMarkdown from 'discordMessageToMarkdown';
-import { log, writeStringToFile } from 'utils';
+import { MarkdownView, Plugin } from 'obsidian';
+
+import discordMessageToMarkdown from 'rsc/discordMessageToMarkdown';
+import { log, writeStringToFile } from 'rsc/utils';
 
 export const SETTINGS = {
 	debug: true
@@ -11,11 +12,8 @@ export default class DiscordFormatter extends Plugin {
 
 	async onload() {
 		this.addCommand({
-			id: "test-command",
-			name: "Test command",
-			editorCallback: (editor: Editor) => {
-				editor.replaceSelection("Test")
-			}
+			id: "run-unit-tests",
+			name: "Debug: Run Unit Tests"
 		})
 		
 		// Define behaviour on paste
@@ -44,3 +42,4 @@ export default class DiscordFormatter extends Plugin {
 		}
 	}
 }
+
