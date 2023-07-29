@@ -1,8 +1,5 @@
 import * as fs from 'fs';
 
-import DiscordFormatter from 'main';
-
-
 export class CouldNotParseError extends Error {
     // Thrown in DiscordMessage or DiscordConversation when unexpected HTML is encountenred
     constructor(message?: string) {
@@ -28,22 +25,15 @@ export function writeDocumentToFile(doc: Document): void {
 
 export function writeStringToFile(str: string | undefined){
     if(typeof str == "undefined"){
-        log("string undefined")
+        console.error("string is undefined")
         return;
     }
 
     for(let i=0; i < 30; i++){
         if(!fs.existsSync(`${i}.html`)){
             fs.writeFile(`${i}.html`, str, () => {});
+            console.log(`Wrote to ${i}.html`);
             return;
         }
     }
-}
-
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function log(...params: any[]): void{
-	if(DiscordFormatter.settings.debug){
-        console.log(...params);
-	}
 }

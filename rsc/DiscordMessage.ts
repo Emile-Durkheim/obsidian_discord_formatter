@@ -1,13 +1,13 @@
 import { CouldNotParseError } from "./utils";
 
-export class EmptyMessage extends Error {
+export class EmptyMessageError extends Error {
     // Thrown when an <li> is empty of message content; empty <li>'s are common when 
     // copy-pasting discord messages. Meant to be caught by DiscordConversation.
 
     constructor(message?: string) {
         super(message);
 
-        Object.setPrototypeOf(this, EmptyMessage.prototype);
+        Object.setPrototypeOf(this, EmptyMessageError.prototype);
     }
 }
 
@@ -21,7 +21,7 @@ export type DiscordMessageContent = {
     attachments?: string[]  // contains URL to attachment
 }
 export type DiscordMessageHeader = {
-    username: string,
+    nickname: string,
     timeExact: number,  // unix timestamp in milliseconds
     timeRelative: string,
     avatar?: string  // url
@@ -37,8 +37,7 @@ export default class DiscordMessage {
         // Check if <li> empty => empty <li>'s are common when
         // copy-pasting Discord messages and should be ignored
         if(!(li.firstElementChild?.innerHTML)){
-            console.log(li);
-            throw new EmptyMessage("<li> seems to be empty")
+            throw new EmptyMessageError("<li> seems to be empty")
         }
 
 
@@ -51,6 +50,7 @@ export default class DiscordMessage {
             const avatar = li.querySelector("img[class^='avatar']") as HTMLImageElement;
             if(avatar){
                 const avatarUrl = avatar.src;
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 this.header!.avatar = avatarUrl;  // header guaranteed to exist if parseMessageHeader returns
             }
         }
@@ -69,20 +69,26 @@ export default class DiscordMessage {
 
     private parseMessageHeader(header: Element): DiscordMessageHeader {
         // Guaranteed to exist if a message header exists
-        const username = header.querySelector("span[class^='username']")?.textContent;
+        const nickname = header.querySelector("span[class^='username']")?.textContent;
         const timeExact = header.querySelector("time")?.dateTime;  // Gets an exact timestamp
         let timeRelative = header.querySelector("time")?.textContent;  // Gets what's printed on the message; i.e. " -- Yesterday at 12:08"
-        timeRelative = timeRelative?.slice(3);  // cut off the first " -- " from message
         
-        if(username && timeExact && timeRelative){
-            return {
-                username: username,
-                timeExact: Date.parse(timeExact),
-                timeRelative: timeRelative
-            }
-        } else {
-            console.log(header);
+        if(!(nickname && timeExact && timeRelative)){
             throw new CouldNotParseError("Message Header exists, but could not find username or time.");
+        }
+
+        // cut off the first " -- " from time text
+        const regexTimeRelative = /— (.*)/.exec(timeRelative);  
+        if(!(regexTimeRelative && regexTimeRelative.length == 2)){
+            throw new CouldNotParseError("Relative time could not be parsed from Regex");
+        }
+        
+        timeRelative = regexTimeRelative[1]
+
+        return {
+            nickname: nickname,
+            timeExact: Date.parse(timeExact),
+            timeRelative: timeRelative
         }
     }
 
@@ -93,7 +99,7 @@ export default class DiscordMessage {
 
         if(!messageContentSpans){
             console.log(li);
-            throw new CouldNotParseError("message contains no text content");
+            throw new EmptyMessageError("message contains no text content");
         }
 
         for(const messageContentSpan of Array.from(messageContentSpans)){
