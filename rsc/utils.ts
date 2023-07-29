@@ -3,6 +3,15 @@ import * as fs from 'fs';
 import DiscordFormatter from 'main';
 
 
+export class CouldNotParseError extends Error {
+    // Thrown in DiscordMessage or DiscordConversation when unexpected HTML is encountenred
+    constructor(message?: string) {
+        super(message);
+
+        Object.setPrototypeOf(this, CouldNotParseError.prototype);
+    }
+}
+
 export function writeDocumentToFile(doc: Document): void {
     // Save document to a file
 

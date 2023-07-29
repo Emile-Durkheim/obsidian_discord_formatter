@@ -1,5 +1,6 @@
 import { MarkdownView, Plugin } from 'obsidian';
 
+import UnitTests from 'tests/UnitTests';
 import discordMessageToMarkdown from 'rsc/discordMessageToMarkdown';
 import { log, writeStringToFile } from 'rsc/utils';
 
@@ -12,7 +13,8 @@ export default class DiscordFormatter extends Plugin {
 	async onload() {
 		this.addCommand({
 			id: "run-unit-tests",
-			name: "Debug: Run Unit Tests"
+			name: "Debug: Run Unit Tests",
+			callback: () => { UnitTests.run() }
 		})
 		
 		// Define behaviour on paste
