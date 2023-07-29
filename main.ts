@@ -3,12 +3,11 @@ import { MarkdownView, Plugin } from 'obsidian';
 import discordMessageToMarkdown from 'rsc/discordMessageToMarkdown';
 import { log, writeStringToFile } from 'rsc/utils';
 
-export const SETTINGS = {
-	debug: true
-}
 
 export default class DiscordFormatter extends Plugin {
-	settings = SETTINGS
+	static settings = {
+		debug: true
+	}
 
 	async onload() {
 		this.addCommand({
