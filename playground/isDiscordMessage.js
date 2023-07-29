@@ -7,7 +7,7 @@ function isDiscordMessage(doc){
 
 	return (
 			ol['dataset']["listId"] == "chat-messages" && 
-     	/scrollerInner/.test(ol.className)
+			/scrollerInner/.test(ol.className)
 	);
 }
 
