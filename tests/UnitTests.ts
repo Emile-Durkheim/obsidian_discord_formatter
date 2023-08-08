@@ -1,7 +1,7 @@
 import * as fs from 'fs';  // won't let me do a normal import, god knows why
 
-import DiscordMessage from "../rsc/DiscordMessage";
-import DiscordConversation from "../rsc/DiscordConversation";
+import DiscordMessage from "../src/DiscordMessage";
+import DiscordConversation from "../src/DiscordConversation";
 
 
 // importing 'assert' gives error: Module "assert" can only be default-imported using the 'allowSyntheticDefaultImports' flags(1259)
@@ -100,6 +100,11 @@ class UnitTests {
                 fileName: "multiple_from_several_users.html", 
                 object: { "messages": [ { "header": { "nickname": "Gigachad Xi", "timeExact": 1689963536254, "timeRelative": "Yesterday at 20:18", "avatar": "https://cdn.discordapp.com/avatars/165944997215076353/432fa5303fb36b8fd126c7178cf70d4c.webp?size=80" }, "context": { "channelId": "557327188311932959", "messageId": "1132013860962975744" }, "content": { "text": "Oppenheimer" } }, { "context": { "channelId": "557327188311932959", "messageId": "1132013881879973978" }, "content": { "text": "Is a solid 7/8" } }, { "header": { "nickname": "Luke", "timeExact": 1689964049113, "timeRelative": "Yesterday at 20:27", "avatar": "https://cdn.discordapp.com/avatars/595791333705121804/7b13474c06f4e459c33364597146b822.webp?size=80" }, "context": { "channelId": "557327188311932959", "messageId": "1132016012049531012" }, "content": { "text": "mooi tota vittu oisko poistaa jotai akuuttii nippii tai jotai mukkulan hepatiittirotta syyhki temestat vittu laika vaik piuhal taj jotai. philisp mankka kajari akuutti 15min tori säätö tos ni saan siit jotain ni voin sit maksaa, en laita tilil mitää kuumottaa vitusti sossut ja edunvalvonta yms ulosoton takia ni koodaile jotai jos mitää buddhaa tms ois poistaa palaillaa sit mo" } }, { "header": { "nickname": "Gigachad Xi", "timeExact": 1689964153722, "timeRelative": "Yesterday at 20:29", "avatar": "https://cdn.discordapp.com/avatars/165944997215076353/432fa5303fb36b8fd126c7178cf70d4c.webp?size=80" }, "context": { "channelId": "557327188311932959", "messageId": "1132016450811461694" }, "content": { "text": "The movie is about physics law and Japan" } } ] },
                 markdown: ">**Gigachad Xi - 7/21/2023, 8:18:56 PM**\n>Oppenheimer\n>Is a solid 7/8\n>\n>**Luke - 7/21/2023, 8:27:29 PM**\n>mooi tota vittu oisko poistaa jotai akuuttii nippii tai jotai mukkulan hepatiittirotta syyhki temestat vittu laika vaik piuhal taj jotai. philisp mankka kajari akuutti 15min tori säätö tos ni saan siit jotain ni voin sit maksaa, en laita tilil mitää kuumottaa vitusti sossut ja edunvalvonta yms ulosoton takia ni koodaile jotai jos mitää buddhaa tms ois poistaa palaillaa sit mo\n>\n>**Gigachad Xi - 7/21/2023, 8:29:13 PM**\n>The movie is about physics law and Japan"
+            },
+            {
+                fileName: "multiple_with_reply.html",
+                object: {},
+                markdown: ""
             }
         ]
         

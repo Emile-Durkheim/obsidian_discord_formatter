@@ -1,4 +1,5 @@
-import DiscordMessage, { EmptyMessageError } from "./DiscordMessage";
+import DiscordMessage from "./DiscordMessage";
+import { EmptyMessageError } from "./utils";
 
 export default class DiscordConversation {
     messages: DiscordMessage[];
