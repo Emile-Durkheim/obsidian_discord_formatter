@@ -103,8 +103,8 @@ class UnitTests {
             },
             {
                 fileName: "multiple_with_reply.html",
-                object: {},
-                markdown: ""
+                object: {"messages": [{"header": {"nickname": "bird","timeExact": 1691022210439,"timeRelative": "Today at 02:23"},"context": {"channelId": "931852793277476894","messageId": "1136454262331822130"},"content": {"text": "I love germany but has to be like among the least drippiest euro countries out there"}},{"context": {"channelId": "931852793277476894","messageId": "1136454712170921994"},"content": {"text": "And its music so bad"}},{"header": {"nickname": "Matthaeus","timeExact": 1691022398376,"timeRelative": "Today at 02:26","avatar": "https://cdn.discordapp.com/avatars/197517944425676802/988fca0e8f445ce54c9dd2600ec7bc35.webp?size=80","reply": {"header": {"nickname": "@bird"},"context": {"messageId": "1136454712170921994"},"content": {"text": "And its music so bad"}}},"context": {"channelId": "931852793277476894","messageId": "1136455050596732929"},"content": {"text": "Lot of good German techno music though"}}]},
+                markdown: ">**bird - 8/3/2023, 2:23:30 AM**\n>I love germany but has to be like among the least drippiest euro countries out there\n>And its music so bad\n>\n>**Matthaeus - 8/3/2023, 2:26:38 AM**\n>>**@bird**: And its music so bad\n>Lot of good German techno music though"
             }
         ]
         
