@@ -1,4 +1,4 @@
-import { CouldNotParseError, EmptyMessageError } from "./utils"
+import { CouldNotParseError, EmptyMessageError, parseMessageContent } from "./utils"
 
 
 export default class DiscordMessageReply{
@@ -47,19 +47,14 @@ export default class DiscordMessageReply{
 
 
         // Parse content
-        const messageFragments: string[] = [];
-        const messageContentSpans = replyDiv.querySelector("div[id^='message-content']")?.children;
+        const messageContentElems = replyDiv.querySelector("div[id^='message-content']")?.children;
 
-        if(!messageContentSpans){
+        if(!messageContentElems){
             console.error(replyDiv);
             throw new EmptyMessageError(`Message contains no text content`);
         }
 
-        for(const messageContentSpan of Array.from(messageContentSpans)){
-            messageFragments.push(messageContentSpan.innerHTML);
-        }
-
-        this.content = {text: messageFragments.join('')};
+        this.content = { text: parseMessageContent(messageContentElems) };
     }
 
 
