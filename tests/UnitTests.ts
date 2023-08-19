@@ -39,6 +39,7 @@ class UnitTests {
     run(){
         this.runMessageTests();
         this.runConversationTests();
+        this.runSingleMessageTests();  // referring to DiscordSingleMessage class
     }
 
 
@@ -88,8 +89,8 @@ class UnitTests {
         const TESTOBJECTS: testObject[] = [
             {
                 fileName: "multiple_with_header.html", 
-                object: { "messages": [ { "header": { "nickname": "Herr", "timeExact": 1690650011630, "timeRelative": "Today at 19:00" }, "context": { "channelId": "840286264964022302", "messageId": "1134893147378425957" }, "content": { "text": "The issue happens when I try to compile the file manually using tsc tests/UnitTests.ts<time aria-label=\"Edited Today at 19:00\" datetime=\"2023-07-29T17:00:17.075Z\"><span class=\"edited-1v5nT8\" style=\"margin: 0px; padding: 0px; border: 0px; font-weight: 400; font-style: inherit; font-family: inherit; font-size: 0.625rem; vertical-align: baseline; outline: 0px; line-height: 1; user-select: none;\">(edited)</span></time>" } }, { "context": { "channelId": "840286264964022302", "messageId": "1134893348440776704" }, "content": { "text": "However, I kinda feel like I have to because npm run dev doesn't seem to compile tests/UnitTests.ts to a tests/UnitTests.js like it does with all other .ts files?<time aria-label=\"Edited Today at 19:01\" datetime=\"2023-07-29T17:01:23.471Z\"><span class=\"edited-1v5nT8\" style=\"margin: 0px; padding: 0px; border: 0px; font-weight: 400; font-style: inherit; font-family: inherit; font-size: 0.625rem; vertical-align: baseline; outline: 0px; line-height: 1; user-select: none;\">(edited)</span></time>" } }, { "context": { "channelId": "840286264964022302", "messageId": "1134893757297344572" }, "content": { "text": "Guess it doesn't matter since it responds to changes to the UnitTests.ts regardless..." } } ] },
-                markdown: `>**Herr - 7/29/2023, 7:00:11 PM**\n>The issue happens when I try to compile the file manually using tsc tests/UnitTests.ts<time aria-label="Edited Today at 19:00" datetime="2023-07-29T17:00:17.075Z"><span class="edited-1v5nT8" style="margin: 0px; padding: 0px; border: 0px; font-weight: 400; font-style: inherit; font-family: inherit; font-size: 0.625rem; vertical-align: baseline; outline: 0px; line-height: 1; user-select: none;">(edited)</span></time>\n>However, I kinda feel like I have to because npm run dev doesn't seem to compile tests/UnitTests.ts to a tests/UnitTests.js like it does with all other .ts files?<time aria-label="Edited Today at 19:01" datetime="2023-07-29T17:01:23.471Z"><span class="edited-1v5nT8" style="margin: 0px; padding: 0px; border: 0px; font-weight: 400; font-style: inherit; font-family: inherit; font-size: 0.625rem; vertical-align: baseline; outline: 0px; line-height: 1; user-select: none;">(edited)</span></time>\n>Guess it doesn't matter since it responds to changes to the UnitTests.ts regardless...`
+                object: { "messages": [ { "header": { "nickname": "Herr", "timeExact": 1690650011630, "timeRelative": "Today at 19:00" }, "context": { "channelId": "840286264964022302", "messageId": "1134893147378425957" }, "content": { "text": "The issue happens when I try to compile the file manually using tsc tests/UnitTests.ts*(edited)*" } }, { "context": { "channelId": "840286264964022302", "messageId": "1134893348440776704" }, "content": { "text": "However, I kinda feel like I have to because npm run dev doesn't seem to compile tests/UnitTests.ts to a tests/UnitTests.js like it does with all other .ts files?*(edited)*" } }, { "context": { "channelId": "840286264964022302", "messageId": "1134893757297344572" }, "content": { "text": "Guess it doesn't matter since it responds to changes to the UnitTests.ts regardless..." } } ] },
+                markdown: `>**Herr - 7/29/2023, 7:00:11 PM**\n>The issue happens when I try to compile the file manually using tsc tests/UnitTests.ts*(edited)*\n>However, I kinda feel like I have to because npm run dev doesn't seem to compile tests/UnitTests.ts to a tests/UnitTests.js like it does with all other .ts files?*(edited)*\n>Guess it doesn't matter since it responds to changes to the UnitTests.ts regardless...`
             },
             {
                 fileName: "multiple_with_pfp.html", 
@@ -108,8 +109,8 @@ class UnitTests {
             },
             {
                 fileName: "one_with_formatting.html",
-                object: {},
-                markdown: ""
+                object: {"messages":[{"header":{"nickname":"Herr","timeExact":1691526039341,"timeRelative":"08/08/2023 22:20"},"context":{"channelId":"138567305459142796","messageId":"1138567473910796310"},"content":{"text":"normal *italics* **bold** <u>underline</u> ~~strikethrough~~\n>**HEADING 1**\n>**HEADING 2**\n>**HEADING 3**\n>>quote\n> *(edited)*"}}]},
+                markdown: ">**Herr - 8/8/2023, 10:20:39 PM**\n>normal *italics* **bold** <u>underline</u> ~~strikethrough~~\n>**HEADING 1**\n>**HEADING 2**\n>**HEADING 3**\n>>quote\n> *(edited)*"
             }
         ]
         
@@ -125,6 +126,32 @@ class UnitTests {
 
                 assertEqual(conversation, object, "DiscordConversation Object equality: " + fileName);
                 assertEqual(conversation.toMarkdown(), markdown, "DiscordConversation.toMarkdown() equality: " + fileName)
+            });
+        }
+    }
+
+
+    runSingleMessageTests(){
+        // reffering to DiscordSingleMessage class
+        const TESTOBJECTS: testObject[] = [
+            {
+                fileName: "single.html", 
+                object: {"messages":[{"header":{"nickname":"Herr","timeExact":1691526039341,"timeRelative":"Today at 22:20"},"context":{"channelId":"113856747391079631"},"content":{"text":"normal *italics* **bold** <u>underline</u> ~~strikethrough~~\n>**HEADING**\n>"}}]},
+                markdown: `>**Herr - 8/8/2023, 10:20:39 PM**\n>normal *italics* **bold** <u>underline</u> ~~strikethrough~~\n>**HEADING**\n>`
+            }
+        ]
+
+        for (const {fileName, object, markdown} of TESTOBJECTS){
+            fs.readFile(this.DIR + fileName, 'utf8', (err, data) => {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+                
+                const conversation = DiscordConversation.fromRawHTML(data);
+
+                assertEqual(conversation, object, "SingleMessage Object equality: " + fileName);
+                assertEqual(conversation.toMarkdown(), markdown, "SingleMessage.toMarkdown() equality: " + fileName)
             });
         }
     }

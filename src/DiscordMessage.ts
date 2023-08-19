@@ -1,17 +1,18 @@
-import { parseMessageContent, CouldNotParseError, EmptyMessageError } from "./utils";
+import { CouldNotParseError, EmptyMessageError } from "./utils";
 import DiscordMessageReply from "./DiscordMessageReply";
 
 
 export default class DiscordMessage {
-    context: {
-        messageId: string,
-        channelId: string
-    };
-
     content: {
         text: string,
         attachments?: string[]  // contains URL to attachment
     }
+    
+    context: {
+        channelId: string
+        messageId?: string,  // messaged ID will be unknown when paste happens to be 
+                             // in DiscordSingleMessage format
+    };
 
     header?: {
         nickname: string,
@@ -22,41 +23,41 @@ export default class DiscordMessage {
     }
 
 
-    constructor(messageLi: Element) {
+    constructor(MESSAGE_LI: Element) {
         // Check if <li> empty => empty <li>'s are common when
         // copy-pasting Discord messages and should be ignored
-        if(!(messageLi.firstElementChild?.innerHTML)){
+        if(!(MESSAGE_LI.firstElementChild?.innerHTML)){
             throw new EmptyMessageError("<li> seems to be empty")
         }
 
 
         // Parse the header, if one exists
-        const messageHeader = messageLi.querySelector("h3[class^='header']");
-        
-        if(messageHeader){
-            this.constructMessageHeader(messageLi);
+        try {
+            this.constructMessageHeader(MESSAGE_LI);
+        } catch (error) {
+            // If incomplete header is passed, like one only containing a timestamp, continue without building the header
+            if(!(error instanceof CouldNotParseError)){
+                throw error;
+            }
         }
 
-
         // Parse the message context; guaranteed to exist
-        this.constructMessageContext(messageLi);
+        this.constructMessageContext(MESSAGE_LI);
 
         // Parse the message content; guaranteed to exist; only text content supported for now
-        this.constructMessageContent(messageLi)
+        this.constructMessageContent(MESSAGE_LI)
     }
 
 
-    private constructMessageHeader(li: Element) {
-        const headerDiv = li.querySelector("h3[class^='header']");
+    protected constructMessageHeader(MESSAGE_LI: Element) {
+        const headerDiv = MESSAGE_LI.querySelector("h3[class^='header']");
         if(!headerDiv){
-            console.error(headerDiv);
-            throw new CouldNotParseError(`parseMessageHeader() called but <h3 class='header...'> could not be found`);
+            throw new CouldNotParseError(`No <h3 class='header...'> found`);
         }
 
         // --- Parse nickname, guaranteed to exist if a message header exists ---
         const nickname = headerDiv.querySelector("span[class^='username']")?.textContent;
         if(!nickname){
-            console.error(headerDiv);
             throw new CouldNotParseError(`Message Header exists, but could not find nickname`);
         }
 
@@ -66,7 +67,6 @@ export default class DiscordMessage {
         let timeRelative = headerDiv.querySelector("time")?.textContent;  // Gets what's printed on the message; i.e. " -- Yesterday at 12:08"
         
         if(!(timeExact && timeRelative)){
-            console.error(headerDiv);
             throw new CouldNotParseError(`Message Header exists, but could not find time`);
         } else {
             // cut off the first " -- " from time text " -- Today at 18:43"
@@ -79,7 +79,7 @@ export default class DiscordMessage {
         }
         
         // --- Parse avatar, if it exists. Avatar is stored in sister of headerDiv --- 
-        const avatarDiv = li.querySelector("img[class^='avatar']") as HTMLImageElement;
+        const avatarDiv = MESSAGE_LI.querySelector("img[class^='avatar']") as HTMLImageElement;
         let avatarUrl = undefined;
         if(avatarDiv){
             avatarUrl = avatarDiv.src;
@@ -87,7 +87,7 @@ export default class DiscordMessage {
 
 
         // --- Parse MessageReply, if it exists. Reply is stored in sister of headerDiv ---
-        const messageReplyDiv = li.querySelector("div[id^='message-reply'");
+        const messageReplyDiv = MESSAGE_LI.querySelector("div[id^='message-reply'");
         let messageReply = undefined;
         if(messageReplyDiv){
             messageReply = new DiscordMessageReply(messageReplyDiv);
@@ -107,25 +107,84 @@ export default class DiscordMessage {
     }
 
 
-    private constructMessageContent(li: Element) {
-        const messageContentElems = li.querySelector("div[class^='contents'] > div[id^='message-content']")?.children;
+    protected constructMessageContent(MESSAGE_LI: Element) {
+        // If the messageLi contains a reply to a different message, the text of the reply will be caught first by 
+        // querySelector id^='message-content'; hence why we filter for a div id=^='message-content' that is the child
+        // of a div class^='contents' 
+        const messageContentElems = MESSAGE_LI.querySelector("div[class^='contents'] > div[id^='message-content']")?.children;
 
         if(!messageContentElems){
-            console.error(li);
             throw new EmptyMessageError(`Message contains no text content`);
         }
 
         this.content = {
-            text: parseMessageContent(messageContentElems)
+            text: DiscordMessage.parseMessageContent(messageContentElems)
         };
     }
 
+    static parseMessageContent(messageContentElems: HTMLCollection): string {
+        const message: string[] = []
+
+        // Using Array.from() because eslint does not recognize me using ES2015+ for some reason...
+        for(const elem of Array.from(messageContentElems)){
+            let textContent = elem.textContent;
+            if(!textContent){ 
+                continue;
+            }
+
+            // If there's a newline, start the next line in a new quote
+            textContent = textContent.replace("\n", "\n>");
+
+            switch(elem.nodeName){
+                case "EM":  // italics
+                    message.push(`*${textContent}*`); break;
+
+                case "STRONG": // bold
+                    message.push(`**${textContent}**`); break;
+
+                case "U": // underline
+                    message.push(`<u>${textContent}</u>`); break;
+
+                case "S":  // strikethrough
+                    message.push(`~~${textContent}~~`); break;
+                
+                case "H1":  // Heading 1
+                    // headings don't have a newline by default, so we add one manually
+                    message.push(`**${textContent}**\n>`); break;
+                
+                case "H2":  // Heading 2
+                    message.push(`**${textContent}**\n>`); break;
+                
+                case "H3":  // Heading 3
+                    message.push(`**${textContent}**\n>`); break;
+
+                default:
+                    // Quote
+                    if(/^blockquote/.test(elem.className)){
+                        message.push(`>${textContent}`); 
+
+                    // (edited) mark
+                    } else if(/^timestamp/.test(elem.className)){
+                        message.push(`*${textContent}*`)
+
+                    // No special styling
+                    } else {
+                        message.push(textContent);
+                    }
+            }
+        }
+
+        return message.join("");
+    }
+
     
-    private constructMessageContext(li: Element) {
-        const IdRegex = /(\d{18})-(\d{19})/.exec(li.id);
+    protected constructMessageContext(MESSAGE_LI: Element) {
+        // li has an id="chat-messages-557327188311932959-1135326475244027975", with first number
+        // being the channel ID and second number being the message ID; that's what we're extracting.
+        const IdRegex = /(\d{18})-(\d{19})/.exec(MESSAGE_LI.id);
         
         if(!(IdRegex && IdRegex.length == 3)){
-            console.log(li);
+            console.log(MESSAGE_LI);
             throw new CouldNotParseError("messageId and serverId not found in <li> id");
         }
 
