@@ -1,8 +1,8 @@
 import DiscordMessage from "./DiscordMessage"
-import { CouldNotParseError, EmptyMessageError } from "./utils"
+import { CouldNotParseError, EmptyMessageError } from "./types"
 
 
-export default class DiscordMessageReply{
+export default class DiscordMessageReply {
     context: {
         messageId: string
     }

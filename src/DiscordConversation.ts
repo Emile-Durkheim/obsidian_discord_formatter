@@ -1,6 +1,6 @@
 import DiscordMessage from "./DiscordMessage";
 import DiscordSingleMessage from "./DiscordSingleMessage";
-import { CouldNotParseError, EmptyMessageError } from "./utils";
+import { CouldNotParseError, EmptyMessageError } from "./types";
 
 
 export default class DiscordConversation {
