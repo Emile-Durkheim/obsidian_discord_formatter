@@ -92,6 +92,7 @@ export default class DiscordFormatter extends Plugin {
 		// Save document to a file
 		for(let i=0; i < 30; i++){
 			if(!fs.existsSync(`${i}.html`)){
+				console.log(`Wrote to ~/${i}.html`)
 				fs.writeFile(`${i}.html`, string, () => {});
 				return;
 			}

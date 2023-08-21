@@ -44,7 +44,7 @@ export default class DiscordMessage implements IDiscordMessage {
         // Parse the message context; guaranteed to exist
         this.constructMessageContext(MESSAGE_LI);
 
-        // Parse the message content; guaranteed to exist; only text content supported for now
+        // Parse the message content; guaranteed to exist
         this.constructMessageContent(MESSAGE_LI)
     }
 
@@ -111,66 +111,96 @@ export default class DiscordMessage implements IDiscordMessage {
         // If the messageLi contains a reply to a different message, the text of the reply will be caught first by 
         // querySelector id^='message-content'; hence why we filter for a div id=^='message-content' that is the child
         // of a div class^='contents' 
-        const messageContentElems = MESSAGE_LI.querySelector("div[class^='contents'] > div[id^='message-content']")?.children;
+        const messageTextElems = MESSAGE_LI.querySelector("div[class^='contents'] > div[id^='message-content']")?.children;
 
-        if(!messageContentElems){
+        if(!messageTextElems){
             throw new EmptyMessageError(`Message contains no text content`);
         }
 
         this.content = {
-            text: DiscordMessage.parseMessageContent(messageContentElems)
+            text: this.parseMessageText(messageTextElems)
         };
     }
 
-    static parseMessageContent(messageContentElems: HTMLCollection): string {
+    protected parseMessageText(messageContentElems: HTMLCollection): string {
         const message: string[] = []
 
         // Using Array.from() because eslint does not recognize me using ES2015+ for some reason...
         for(const elem of Array.from(messageContentElems)){
             let textContent = elem.textContent;
+            
+            // --- Emojis/Custom emojis ---
             if(!textContent){ 
+                if(/^emojiContainer/.test(elem.className)){
+                    const imgElem = elem.children[0] as HTMLImageElement;
+                    if(!imgElem){
+                        console.error("No img element found in span.emojiContainer");
+                    }
+
+                    if(/^:.+:$/.test(imgElem.alt)){  // If it's a custom emoji, then alt text is ':emojiName:'
+                        message.push(`<img src='${imgElem.src}' style='height: var(--font-text-size)'>`)
+                    } else {  // If it's a unicode emoji, then alt text is the unicode emoji
+                        message.push(`${imgElem.alt}`);
+                    }
+                }
                 continue;
             }
+
+
+            // --- Text ----
 
             // If there's a newline, start the next line in a new quote
             textContent = textContent.replace("\n", "\n>");
 
+            // Check the the type of a node to determine what kind of text it is.
+            // For some types of text (quotes...) we need to check the
+            // class name instead. A blockquote will have class="blockquote-2AkdDH",
+            // wherein the last 6 alphanumericals will be random gibberish.
             switch(elem.nodeName){
-                case "EM":  // italics
+                case "EM": { // italics
                     message.push(`*${textContent}*`); break;
+                }
 
-                case "STRONG": // bold
+                case "STRONG": { // bold
                     message.push(`**${textContent}**`); break;
+                }
 
-                case "U": // underline
+                case "U": { // underline
                     message.push(`<u>${textContent}</u>`); break;
+                }
 
-                case "S":  // strikethrough
+                case "S": {  // strikethrough
                     message.push(`~~${textContent}~~`); break;
+                }
                 
-                case "H1":  // Heading 1
+                case "H1": {  // Heading 1
                     // headings don't have a newline by default, so we add one manually
                     message.push(`**${textContent}**\n>`); break;
+                }
                 
-                case "H2":  // Heading 2
+                case "H2": {  // Heading 2
                     message.push(`**${textContent}**\n>`); break;
+                }
                 
-                case "H3":  // Heading 3
+                case "H3": {  // Heading 3
                     message.push(`**${textContent}**\n>`); break;
+                }
 
-                default:
+                default: {  
+                    // Check class names for other formatting types
                     // Quote
                     if(/^blockquote/.test(elem.className)){
                         message.push(`>${textContent}`); 
-
+                        
                     // (edited) mark
                     } else if(/^timestamp/.test(elem.className)){
-                        message.push(`*${textContent}*`)
+                        message.push(` *(edited)*`)
 
                     // No special styling
                     } else {
                         message.push(textContent);
                     }
+                }
             }
         }
 
