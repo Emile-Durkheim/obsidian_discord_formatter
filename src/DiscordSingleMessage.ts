@@ -1,5 +1,5 @@
 import DiscordMessage from "./DiscordMessage";
-import { CouldNotParseError, EmptyMessageError } from "./types";
+import { CouldNotParseError } from "./types";
 
 
 export default class DiscordSingleMessage extends DiscordMessage {
@@ -7,37 +7,37 @@ export default class DiscordSingleMessage extends DiscordMessage {
         super(messageDiv);   
     }
     
-    protected constructMessageContent(messageDiv: Element){
+    protected getMessageTextElems(messageDiv: Element): HTMLCollection | undefined {
         // This type of HTML can't contain a reply, so its HTML structure is more basic.
         // The message content is exposed right away in a direct child of the message div,
         // so we need to change the querySelector
-        const messageTextElems = messageDiv.querySelector("div[id^='message-content']")?.children;
-
-        if(!messageTextElems){
-            console.error(messageDiv);
-            throw new EmptyMessageError(`Message contains no text content`);
-        }
-
-        this.content = {
-            text: this.parseMessageText(messageTextElems)
-        };
+        // If the messageLi contains 
+        return messageDiv.querySelector("div[id^='message-content']")?.children;
     }
 
     protected constructMessageContext(messageDiv: Element): void {
-        // This type of HTML doesn't contain 
+        // This type of messages doesn't contain a message ID
         const messageContentElem = messageDiv.querySelector("div[id^='message-content']");
+        const messageAccessoryElem = messageDiv.querySelector("div[id^='message-accessories']");
 
-        if(!messageContentElem){
-            throw new CouldNotParseError("No div[id='message-content...' could be found.")
+        if(!messageContentElem && !messageAccessoryElem){
+            throw new CouldNotParseError("No div#message-content nor div#message-accessories could be found.")
         }
 
-        const channelIdRegex = /\d{18}/.exec(messageContentElem.id);
-        if(!(channelIdRegex && channelIdRegex.length == 1)){
+        const channelIdRegex = /\d{18}/;
+        let regexResult = undefined;
+        if(messageContentElem){
+            regexResult = channelIdRegex.exec(messageContentElem.id);
+        } else if(messageAccessoryElem){
+            regexResult = channelIdRegex.exec(messageAccessoryElem.id);
+        }
+
+        if(!(regexResult && regexResult.length == 1)){
             throw new CouldNotParseError("Could not parse channel id from message-content div");
         }
 
         this.context = {
-            channelId: channelIdRegex[0]
+            channelId: regexResult[0]
         }
     }
 }

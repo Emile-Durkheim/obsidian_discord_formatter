@@ -4,7 +4,7 @@ import DiscordMessageReply from "./DiscordMessageReply";
 
 export default class DiscordMessage implements IDiscordMessage {
     content: {
-        text: string,
+        text?: string,
         attachments?: string[]  // contains URL to attachment
     }
     
@@ -108,21 +108,30 @@ export default class DiscordMessage implements IDiscordMessage {
 
 
     protected constructMessageContent(MESSAGE_LI: Element) {
+        const messageTextElems = this.getMessageTextElems(MESSAGE_LI);  // DiscordSingleMessage gets this element differently
+        const messageAttachmentElem = MESSAGE_LI.querySelector("div[id^='message-accessories']");
+        
+        if(!messageTextElems && !messageAttachmentElem){
+            throw new EmptyMessageError(`Message contains neither text content nor attachments`);
+        }
+        
+        this.content = {}
+        if(messageTextElems){
+            this.content.text = DiscordMessage.parseMessageText(messageTextElems);
+        }
+        if(messageAttachmentElem){
+            this.content.attachments = this.parseMessageAttachments(messageAttachmentElem);
+        }
+    }
+    
+    protected getMessageTextElems(MESSAGE_LI: Element): HTMLCollection | undefined {  
         // If the messageLi contains a reply to a different message, the text of the reply will be caught first by 
         // querySelector id^='message-content'; hence why we filter for a div id=^='message-content' that is the child
         // of a div class^='contents' 
-        const messageTextElems = MESSAGE_LI.querySelector("div[class^='contents'] > div[id^='message-content']")?.children;
-
-        if(!messageTextElems){
-            throw new EmptyMessageError(`Message contains no text content`);
-        }
-
-        this.content = {
-            text: this.parseMessageText(messageTextElems)
-        };
+        return MESSAGE_LI.querySelector("div[class^='contents'] > div[id^='message-content']")?.children;
     }
 
-    protected parseMessageText(messageContentElems: HTMLCollection): string {
+    static parseMessageText(messageContentElems: HTMLCollection): string {  // needs to stay static until I refactor DiscordMessageReply to be child of DiscordMessage
         const message: string[] = []
 
         // Using Array.from() because eslint does not recognize me using ES2015+ for some reason...
@@ -207,6 +216,12 @@ export default class DiscordMessage implements IDiscordMessage {
         return message.join("");
     }
 
+    protected parseMessageAttachments(messageAccessoryElem: Element): string[] {
+        const messageAccessoryImages = Array.from(messageAccessoryElem.querySelectorAll("img")) as HTMLImageElement[];
+
+        return messageAccessoryImages.map((img) => {return img.src});
+    }
+
     
     protected constructMessageContext(MESSAGE_LI: Element) {
         // li has an id="chat-messages-557327188311932959-1135326475244027975", with first number
@@ -228,6 +243,7 @@ export default class DiscordMessage implements IDiscordMessage {
     public toMarkdown(): string {
         const markdownArray: string[] = [];
 
+        // Nickname, time
         if(this.header){
             const date = new Date(this.header.timeExact);
 
@@ -240,7 +256,17 @@ export default class DiscordMessage implements IDiscordMessage {
             }
         }
 
-        markdownArray.push(this.content.text);
+        // Text
+        if(this.content.text){
+            markdownArray.push(this.content.text);
+        }
+
+        // Attachments
+        if(this.content.attachments){
+            for(const url of this.content.attachments){
+                markdownArray.push(`![](${url})`)
+            }
+        }
 
         return '>' + markdownArray.join("\n>");
     }
