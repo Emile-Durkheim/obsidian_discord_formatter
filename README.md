@@ -9,7 +9,7 @@ Just CTRL+C from the desktop Discord client and CTRL+V into Obsidian! All the fo
 - Paste whole conversations rather than just single messages
 - Easy to use with just CTRL+C and CTRL+V
 - Convert all Discord markdown to Obsidian markdown (underline, bold, quotes, strikethrough, etc.)
-- See attachments & embeds
+- Embed attachments/website in Obsidian
 
 ### Limitations
 The plugin relies on HTML that Discord **usually** serves when you copy a message from the Desktop Client. However, **Discord does not do this reliably**. In 10% of cases, your clipboard contains only raw text, which I can't parse as well as the HTML.
