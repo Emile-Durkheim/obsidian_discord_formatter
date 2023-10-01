@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import DiscordMessage from "../src/DiscordMessage";
 import DiscordConversation from "../src/DiscordConversation";
 import DiscordSingleMessage from 'src/DiscordSingleMessage';
+import { IMessageFormats } from 'src/formats';
 
 
 // importing 'assert' gives error: Module "assert" can only be default-imported using the 'allowSyntheticDefaultImports' flags(1259)
@@ -43,15 +44,15 @@ class Tests {
     
     constructor(){}
 
-    run(){
+    run(formats: IMessageFormats){
         console.log("--- TEST START ---");
-        this.runMessageTests();
-        this.runConversationTests();
-        this.runSingleMessageTests();  // referring to DiscordSingleMessage class
+        this.runMessageTests(formats);
+        this.runConversationTests(formats);
+        this.runSingleMessageTests(formats);  // referring to DiscordSingleMessage class
     }
 
 
-    runMessageTests(){
+    runMessageTests(formats: IMessageFormats){
         // Backend: Make sure that filepath.html results in a given object
         const TESTOBJECTS: testObject[] = [
             {   
@@ -78,7 +79,7 @@ class Tests {
                 const DOM = parser.parseFromString(data, 'text/html');
             
                 const firstLi = DOM.querySelector("li") as HTMLElement;
-                const message = new DiscordMessage(firstLi);
+                const message = new DiscordMessage(firstLi, formats);
 
                 assertEqual(message, object, "DiscordMessage Object equality: " + fileName);
                 assertEqual(message.toMarkdown(), markdown, "DiscordMessage.toMarkdown() equality: " + fileName)
@@ -87,7 +88,7 @@ class Tests {
     }
 
 
-    runConversationTests(){
+    runConversationTests(formats: IMessageFormats){
         // Define tests as a Map<filepath, object>
         const TESTOBJECTS: testObject[] = [
             {
@@ -140,7 +141,7 @@ class Tests {
                     return;
                 }
                 
-                const conversation = DiscordConversation.fromRawHTML(data);
+                const conversation = DiscordConversation.fromRawHTML(data, formats);
 
                 assertEqual(conversation, object, "DiscordConversation Object equality: " + fileName);
                 assertEqual(conversation.toMarkdown(), markdown, "DiscordConversation.toMarkdown() equality: " + fileName)
@@ -149,7 +150,7 @@ class Tests {
     }
 
 
-    runSingleMessageTests(){
+    runSingleMessageTests(formats: IMessageFormats){
         // referring to DiscordSingleMessage class
         const TESTOBJECTS: testObject[] = [
             {
@@ -184,7 +185,7 @@ class Tests {
                 const parser = new DOMParser();
                 const DOM = parser.parseFromString(data, 'text/html');
             
-                const singleMessage = new DiscordSingleMessage(DOM.body);
+                const singleMessage = new DiscordSingleMessage(DOM.body, formats);
 
                 assertEqual(singleMessage, object, "SingleMessage Object equality: " + fileName);
                 assertEqual(singleMessage.toMarkdown(), markdown, "SingleMessage.toMarkdown() equality: " + fileName)
