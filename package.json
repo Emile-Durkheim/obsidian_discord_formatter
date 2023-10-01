@@ -4,10 +4,9 @@
 	"description": "Obsidian.md plugin that lets you copy Discord conversations and perfectly formats them to Obsidian Markdown!",
 	"main": "main.js",
 	"scripts": {
-		"dev": "node esbuild.config.mjs",
-		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+		"build": "node esbuild.config.mjs production",
 		"version": "node version-bump.mjs && git add manifest.json versions.json",
-		"test": "node esbuild.config.mjs test"
+		"dev": "node esbuild.config.mjs test"
 	},
 	"keywords": [],
 	"author": "",
