@@ -1,4 +1,5 @@
 import DiscordMessage from "./DiscordMessage"
+import { IMessageFormats } from "./formats"
 import { CouldNotParseError, EmptyMessageError } from "./types"
 
 
@@ -13,7 +14,9 @@ export default class DiscordMessageReply {
         nickname: string
     }
 
-    constructor(replyDiv: Element){
+    constructor(replyDiv: Element, formats: IMessageFormats){
+        // Has its own constructor separate of DiscordMessage because the HTML layout is pretty different
+
         // Check if a replyDiv was actually passed in
         if(!/^message-reply-context/.test(replyDiv.id)){
             console.error(replyDiv);
@@ -55,7 +58,7 @@ export default class DiscordMessageReply {
             throw new EmptyMessageError(`Message contains no text content`);
         }
 
-        this.content = { text: DiscordMessage.parseMessageText(messageContentElems) };
+        this.content = { text: DiscordMessage.parseMessageText(messageContentElems, formats) };
     }
 
 

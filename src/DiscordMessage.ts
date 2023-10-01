@@ -1,5 +1,6 @@
 import { CouldNotParseError, EmptyMessageError, IDiscordMessage } from "./types";
 import DiscordMessageReply from "./DiscordMessageReply";
+import { IMessageFormats } from "./formats";
 
 
 export default class DiscordMessage implements IDiscordMessage {
@@ -23,7 +24,7 @@ export default class DiscordMessage implements IDiscordMessage {
     }
 
 
-    constructor(MESSAGE_LI: Element) {
+    constructor(MESSAGE_LI: Element, formats: IMessageFormats) {
         // Check if <li> empty => empty <li>'s are common when
         // copy-pasting Discord messages and should be ignored
         if(!(MESSAGE_LI.firstElementChild?.innerHTML)){
@@ -33,7 +34,7 @@ export default class DiscordMessage implements IDiscordMessage {
 
         // Parse the header, if one exists
         try {
-            this.constructMessageHeader(MESSAGE_LI);
+            this.constructMessageHeader(MESSAGE_LI, formats);
         } catch (error) {
             // If incomplete header is passed, like one only containing a timestamp, continue without building the header
             if(!(error instanceof CouldNotParseError)){
@@ -45,11 +46,11 @@ export default class DiscordMessage implements IDiscordMessage {
         this.constructMessageContext(MESSAGE_LI);
 
         // Parse the message content; guaranteed to exist
-        this.constructMessageContent(MESSAGE_LI)
+        this.constructMessageContent(MESSAGE_LI, formats)
     }
 
 
-    protected constructMessageHeader(MESSAGE_LI: Element) {
+    protected constructMessageHeader(MESSAGE_LI: Element, formats: IMessageFormats) {
         const headerDiv = MESSAGE_LI.querySelector("h3[class^='header']");
         if(!headerDiv){
             throw new CouldNotParseError(`No <h3 class='header...'> found`);
@@ -89,8 +90,8 @@ export default class DiscordMessage implements IDiscordMessage {
         // --- Parse MessageReply, if it exists. Reply is stored in sister of headerDiv ---
         const messageReplyDiv = MESSAGE_LI.querySelector("div[id^='message-reply'");
         let messageReply = undefined;
-        if(messageReplyDiv){
-            messageReply = new DiscordMessageReply(messageReplyDiv);
+        if(messageReplyDiv && formats.reply()){
+            messageReply = new DiscordMessageReply(messageReplyDiv, formats);
         }
         
 
@@ -107,7 +108,7 @@ export default class DiscordMessage implements IDiscordMessage {
     }
 
 
-    protected constructMessageContent(MESSAGE_LI: Element) {
+    protected constructMessageContent(MESSAGE_LI: Element, formats: IMessageFormats) {
         const messageTextElems = this.getMessageTextElems(MESSAGE_LI);  // DiscordSingleMessage gets this element differently
         const messageAttachmentElem = MESSAGE_LI.querySelector("div[id^='message-accessories']");
         
@@ -117,7 +118,7 @@ export default class DiscordMessage implements IDiscordMessage {
         
         this.content = {}
         if(messageTextElems){
-            this.content.text = DiscordMessage.parseMessageText(messageTextElems);
+            this.content.text = DiscordMessage.parseMessageText(messageTextElems, formats);
         }
         if(messageAttachmentElem){
             this.content.attachments = this.parseMessageAttachments(messageAttachmentElem);
@@ -131,14 +132,17 @@ export default class DiscordMessage implements IDiscordMessage {
         return MESSAGE_LI.querySelector("div[class^='contents'] > div[id^='message-content']")?.children;
     }
 
-    static parseMessageText(messageContentElems: HTMLCollection): string {  // needs to stay static until I refactor DiscordMessageReply to be child of DiscordMessage
+    static parseMessageText(messageContentElems: HTMLCollection, formats: IMessageFormats): string {  // needs to stay static until I refactor DiscordMessageReply to be child of DiscordMessage
         const message: string[] = []
 
         // Using Array.from() because eslint does not recognize me using ES2015+ for some reason...
-        for(const elem of Array.from(messageContentElems)){
+        for(let i=0; i < messageContentElems.length; i++){
+            const elem = messageContentElems[i]
+            const isLastElem = (i == messageContentElems.length-1)
+
             let textContent = elem.textContent;
             
-            // --- Emojis/Custom emojis ---
+            // --- Parse emojis/Custom emojis ---
             if(!textContent){ 
                 if(/^emojiContainer/.test(elem.className)){
                     const imgElem = elem.children[0] as HTMLImageElement;
@@ -156,9 +160,9 @@ export default class DiscordMessage implements IDiscordMessage {
             }
 
 
-            // --- Text ----
+            // --- Parse text/text formats ----
 
-            // If there's a newline, start the next line in a new quote
+            // If there's a newline in the message, start the next line in a new quote
             textContent = textContent.replace("\n", "\n>");
 
             // Check the the type of a node to determine what kind of text it is.
@@ -167,43 +171,43 @@ export default class DiscordMessage implements IDiscordMessage {
             // wherein the last 6 alphanumericals will be random gibberish.
             switch(elem.nodeName){
                 case "EM": { // italics
-                    message.push(`*${textContent}*`); break;
+                    message.push(formats.italics(textContent)); break;
                 }
 
                 case "STRONG": { // bold
-                    message.push(`**${textContent}**`); break;
+                    message.push(formats.bold(textContent)); break;
                 }
 
                 case "U": { // underline
-                    message.push(`<u>${textContent}</u>`); break;
+                    message.push(formats.underline(textContent)); break;
                 }
 
                 case "S": {  // strikethrough
-                    message.push(`~~${textContent}~~`); break;
+                    message.push(formats.strikethrough(textContent)); break;
                 }
                 
                 case "H1": {  // Heading 1
-                    // headings don't have a newline by default, so we add one manually
-                    message.push(`**${textContent}**\n>`); break;
+                    message.push(formats.h1(textContent, isLastElem)); break;
                 }
                 
                 case "H2": {  // Heading 2
-                    message.push(`**${textContent}**\n>`); break;
+                    message.push(formats.h2(textContent, isLastElem)); break;
                 }
                 
                 case "H3": {  // Heading 3
-                    message.push(`**${textContent}**\n>`); break;
+                    message.push(formats.h3(textContent, isLastElem)); break;
                 }
 
                 default: {  
                     // Check class names for other formatting types
                     // Quote
                     if(/^blockquote/.test(elem.className)){
-                        message.push(`>${textContent}`); 
+                        message.push(formats.quote(textContent)); 
                         
                     // (edited) mark
                     } else if(/^timestamp/.test(elem.className)){
-                        message.push(` *(edited)*`)
+                        const text = formats.edited()
+                        if(text) message.push(text)
 
                     // No special styling
                     } else {
@@ -243,7 +247,7 @@ export default class DiscordMessage implements IDiscordMessage {
     public toMarkdown(): string {
         const markdownArray: string[] = [];
 
-        // Nickname, time
+        // Nickname, time, reply
         if(this.header){
             const date = new Date(this.header.timeExact);
 

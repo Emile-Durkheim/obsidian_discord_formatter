@@ -1,10 +1,11 @@
 import DiscordMessage from "./DiscordMessage";
+import { IMessageFormats } from "./formats";
 import { CouldNotParseError } from "./types";
 
 
 export default class DiscordSingleMessage extends DiscordMessage {
-    constructor(messageDiv: Element){
-        super(messageDiv);   
+    constructor(messageDiv: Element, formats: IMessageFormats){
+        super(messageDiv, formats);   
     }
     
     protected getMessageTextElems(messageDiv: Element): HTMLCollection | undefined {
