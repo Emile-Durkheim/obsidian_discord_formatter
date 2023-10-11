@@ -121,7 +121,7 @@ export function createFormats(settings: IDiscordFormatterSettings): IMessageForm
         h2: h2Format,
         h3: h3Format,
 
-        default:formats.default,
+        default: formats.default,
 
         emoji: formats.emoji,
         customEmoji: formats.customEmoji
