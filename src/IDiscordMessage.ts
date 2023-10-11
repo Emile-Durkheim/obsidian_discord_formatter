@@ -20,7 +20,7 @@ export type TextRun = {
 };
 
 
-export abstract class AbstractDiscordMessage {
+export interface IDiscordMessage {
     // content will exist on a message, but there might both be only attachments and
     // no text on a message, or only text but not attachments
     content: {
@@ -38,18 +38,6 @@ export abstract class AbstractDiscordMessage {
         reply?: DiscordMessageReply; // not every message is a reply to another message
     };
 
-
-
-    constructor(MESSAGE_LI: Element) {
-        // to be filled by implementation; DO NOT ADD LOGIC HERE!
-    }
-
-    protected abstract constructMessageHeader(MESSAGE_LI: Element): AbstractDiscordMessage["header"];
-
-    protected abstract constructMessageContent(MESSAGE_LI: Element): AbstractDiscordMessage["content"];
-
-    protected abstract getMessageTextElems(MESSAGE_LI: Element): HTMLCollection | undefined;
-
-    public abstract toMarkdown(formats: IMessageFormats): string;
+    toMarkdown(formats: IMessageFormats): string;
 }
 
