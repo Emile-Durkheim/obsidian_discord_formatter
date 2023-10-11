@@ -1,7 +1,8 @@
 import DiscordMessage from "./DiscordMessage";
 import DiscordSingleMessage from "./DiscordSingleMessage";
 import { IMessageFormats } from "./formats";
-import { CouldNotParseError, EmptyMessageError } from "./types";
+import { EmptyMessageError } from "./utils";
+import { CouldNotParseError } from "./utils";
 
 
 export default class DiscordConversation {
@@ -41,7 +42,7 @@ export default class DiscordConversation {
         if(domOfMessages.length > 0){
             for (const message of domOfMessages){
                 try {
-                    discordMessages.push(new DiscordMessage(message, formats));
+                    discordMessages.push(new DiscordMessage(message));
                 } catch(err) {
                     if(!(err instanceof EmptyMessageError)){
                         throw err;
@@ -51,7 +52,7 @@ export default class DiscordConversation {
                 }
             }
         } else {
-            discordMessages.push(new DiscordSingleMessage(DOM.body, formats));
+            discordMessages.push(new DiscordSingleMessage(DOM.body));
         }
 
         return discordMessages;
@@ -104,7 +105,7 @@ export default class DiscordConversation {
 
 
 
-    public toMarkdown(): string {
+    public toMarkdown(formats: IMessageFormats): string {
         const markdownArray: string[] = [];
 
         for(const message of this.messages){
@@ -113,7 +114,7 @@ export default class DiscordConversation {
                 markdownArray.push(">");
             }
 
-            markdownArray.push(message.toMarkdown());
+            markdownArray.push(message.toMarkdown(formats));
         }
 
         return markdownArray.join("\n");
