@@ -1,66 +1,116 @@
-import { CouldNotParseError, EmptyMessageError, IDiscordMessage } from "./types";
+import { EmptyMessageError, parseMessageAttachments, textRunsToMarkdown } from "./utils";
+import { CouldNotParseError } from "./utils";
 import DiscordMessageReply from "./DiscordMessageReply";
 import { IMessageFormats } from "./formats";
+import { parseMessageText } from "./utils";
 
 
-export default class DiscordMessage implements IDiscordMessage {
+export type TextRun = {
+    content: string;
+    type:
+    "default" |
+    "italics" |
+    "bold" |
+    "underline" |
+    "strikethrough" |
+    "h1" |
+    "h2" |
+    "h3" |
+    "quote" |
+    "edited" |
+    "emoji" |
+    "customEmoji";
+};
+
+
+export abstract class AbstractDiscordMessage {
+    // content will exist on a message, but there might both be only attachments and
+    // no text on a message, or only text but not attachments
     content: {
-        text?: string,
-        attachments?: string[]  // contains URL to attachment
-    }
+        textRuns?: TextRun[];
+        attachments?: string[]; // contains URL to attachment(s)
+    };
     
-    context: {
-        channelId: string
-        messageId?: string,  // messaged ID will be unknown when paste happens to be 
-                             // in DiscordSingleMessage format
+    // might not be present if user selected only the message text for copy,
+    // or if user copied header only partially (i.e. only copied half of the timestamp)
+    header?: {
+        nickname: string;
+        timeExact?: number; // unix timestamp in milliseconds
+        timeRelative?: string;
+        avatar?: string; // url
+        reply?: DiscordMessageReply;  // not every message is a reply to another message
     };
 
-    header?: {
-        nickname: string,
-        timeExact: number,  // unix timestamp in milliseconds
-        timeRelative: string,
-        avatar?: string,  // url
-        reply?: DiscordMessageReply
+
+
+    constructor(MESSAGE_LI: Element){
+        // fill
     }
 
+    protected abstract constructMessageHeader(MESSAGE_LI: Element): AbstractDiscordMessage["header"];
 
-    constructor(MESSAGE_LI: Element, formats: IMessageFormats) {
+    protected abstract constructMessageContent(MESSAGE_LI: Element): AbstractDiscordMessage["content"];
+
+    protected abstract getMessageTextElems(MESSAGE_LI: Element): HTMLCollection | undefined;
+    
+    public abstract toMarkdown(formats: IMessageFormats): string;
+}
+
+
+export default class DiscordMessage extends AbstractDiscordMessage {
+
+    // Properties as per interface
+    content: {
+        textRuns?: TextRun[],  
+        attachments?: string[]
+    }    
+    
+    header?: {
+        nickname: string,
+        timeExact: number,
+        timeRelative: string,
+        avatar?: string,
+        reply?: DiscordMessageReply
+    }    
+    
+    
+    constructor(MESSAGE_LI: Element) {
+        super(MESSAGE_LI);
+
         // Check if <li> empty => empty <li>'s are common when
         // copy-pasting Discord messages and should be ignored
         if(!(MESSAGE_LI.firstElementChild?.innerHTML)){
             throw new EmptyMessageError("<li> seems to be empty")
-        }
+        }    
 
 
-        // Parse the header, if one exists
+        // Parse the header
+        // May throw CouldNotParseError if, for example, header wasn't copied at all or when
+        // only half of a timestamp was copied in. In these cases, we skip constructing the header. 
         try {
-            this.constructMessageHeader(MESSAGE_LI, formats);
+            this.header = this.constructMessageHeader(MESSAGE_LI);
         } catch (error) {
-            // If incomplete header is passed, like one only containing a timestamp, continue without building the header
             if(!(error instanceof CouldNotParseError)){
                 throw error;
-            }
-        }
-
-        // Parse the message context; guaranteed to exist
-        this.constructMessageContext(MESSAGE_LI);
+            }    
+        }    
 
         // Parse the message content; guaranteed to exist
-        this.constructMessageContent(MESSAGE_LI, formats)
-    }
+        this.content = this.constructMessageContent(MESSAGE_LI)
+    }    
 
 
-    protected constructMessageHeader(MESSAGE_LI: Element, formats: IMessageFormats) {
+    protected constructMessageHeader(MESSAGE_LI: Element): DiscordMessage["header"] {
         const headerDiv = MESSAGE_LI.querySelector("h3[class^='header']");
         if(!headerDiv){
             throw new CouldNotParseError(`No <h3 class='header...'> found`);
-        }
+        }    
 
         // --- Parse nickname, guaranteed to exist if a message header exists ---
         const nickname = headerDiv.querySelector("span[class^='username']")?.textContent;
         if(!nickname){
             throw new CouldNotParseError(`Message Header exists, but could not find nickname`);
-        }
+        }    
 
         
         // --- Parse time,headerDivuaranteed to exist if a message header exists ---ct timestampheaderli
@@ -74,25 +124,26 @@ export default class DiscordMessage implements IDiscordMessage {
             const regexTimeRelative = /— (.*)/.exec(timeRelative);  
             if(!(regexTimeRelative && regexTimeRelative.length == 2)){
                 throw new CouldNotParseError("Relative time could not be parsed from Regex");
-            }
+            }    
             
             timeRelative = regexTimeRelative[1]
-        }
+        }    
         
+
         // --- Parse avatar, if it exists. Avatar is stored in sister of headerDiv --- 
         const avatarDiv = MESSAGE_LI.querySelector("img[class^='avatar']") as HTMLImageElement;
         let avatarUrl = undefined;
         if(avatarDiv){
             avatarUrl = avatarDiv.src;
-        }
+        }    
 
 
         // --- Parse MessageReply, if it exists. Reply is stored in sister of headerDiv ---
         const messageReplyDiv = MESSAGE_LI.querySelector("div[id^='message-reply'");
         let messageReply = undefined;
-        if(messageReplyDiv && formats.reply()){
-            messageReply = new DiscordMessageReply(messageReplyDiv, formats);
-        }
+        if(messageReplyDiv){
+            messageReply = new DiscordMessageReply(messageReplyDiv);
+        }    
         
 
         // --- Construct header ---
@@ -100,151 +151,45 @@ export default class DiscordMessage implements IDiscordMessage {
             nickname: nickname,
             timeExact: Date.parse(timeExact),
             timeRelative: timeRelative
-        }
+        }    
         if(avatarUrl) header.avatar = avatarUrl;
         if(messageReply) header.reply = messageReply;
 
-        this.header = header;
-    }
+        return header;
+    }    
 
 
-    protected constructMessageContent(MESSAGE_LI: Element, formats: IMessageFormats) {
-        const messageTextElems = this.getMessageTextElems(MESSAGE_LI);  // DiscordSingleMessage gets this element differently
+    protected constructMessageContent(MESSAGE_LI: Element): DiscordMessage["content"] {
+        const messageTextElems = this.getMessageTextElems(MESSAGE_LI);
         const messageAttachmentElem = MESSAGE_LI.querySelector("div[id^='message-accessories']");
         
+
         if(!messageTextElems && !messageAttachmentElem){
             throw new EmptyMessageError(`Message contains neither text content nor attachments`);
-        }
+        }    
         
-        this.content = {}
+        
+        const content: Record<string, TextRun[] | string[]> = {}
         if(messageTextElems){
-            this.content.text = DiscordMessage.parseMessageText(messageTextElems, formats);
-        }
+            content.textRuns = parseMessageText(messageTextElems);
+        }    
         if(messageAttachmentElem){
-            this.content.attachments = this.parseMessageAttachments(messageAttachmentElem);
-        }
-    }
+            content.attachments = parseMessageAttachments(messageAttachmentElem);
+        }    
+
+
+        return content;
+    }    
     
     protected getMessageTextElems(MESSAGE_LI: Element): HTMLCollection | undefined {  
         // If the messageLi contains a reply to a different message, the text of the reply will be caught first by 
         // querySelector id^='message-content'; hence why we filter for a div id=^='message-content' that is the child
         // of a div class^='contents' 
         return MESSAGE_LI.querySelector("div[class^='contents'] > div[id^='message-content']")?.children;
-    }
-
-    static parseMessageText(messageContentElems: HTMLCollection, formats: IMessageFormats): string {  // needs to stay static until I refactor DiscordMessageReply to be child of DiscordMessage
-        const message: string[] = []
-
-        // Using Array.from() because eslint does not recognize me using ES2015+ for some reason...
-        for(let i=0; i < messageContentElems.length; i++){
-            const elem = messageContentElems[i]
-            const isLastElem = (i == messageContentElems.length-1)
-
-            let textContent = elem.textContent;
-            
-            // --- Parse emojis/Custom emojis ---
-            if(!textContent){ 
-                if(/^emojiContainer/.test(elem.className)){
-                    const imgElem = elem.children[0] as HTMLImageElement;
-                    if(!imgElem){
-                        console.error("No img element found in span.emojiContainer");
-                    }
-
-                    if(/^:.+:$/.test(imgElem.alt)){  // If it's a custom emoji, then alt text is ':emojiName:'
-                        message.push(`<img src='${imgElem.src}' style='height: var(--font-text-size)'>`)
-                    } else {  // If it's a unicode emoji, then alt text is the unicode emoji
-                        message.push(`${imgElem.alt}`);
-                    }
-                }
-                continue;
-            }
-
-
-            // --- Parse text/text formats ----
-
-            // If there's a newline in the message, start the next line in a new quote
-            textContent = textContent.replace("\n", "\n>");
-
-            // Check the the type of a node to determine what kind of text it is.
-            // For some types of text (quotes...) we need to check the
-            // class name instead. A blockquote will have class="blockquote-2AkdDH",
-            // wherein the last 6 alphanumericals will be random gibberish.
-            switch(elem.nodeName){
-                case "EM": { // italics
-                    message.push(formats.italics(textContent)); break;
-                }
-
-                case "STRONG": { // bold
-                    message.push(formats.bold(textContent)); break;
-                }
-
-                case "U": { // underline
-                    message.push(formats.underline(textContent)); break;
-                }
-
-                case "S": {  // strikethrough
-                    message.push(formats.strikethrough(textContent)); break;
-                }
-                
-                case "H1": {  // Heading 1
-                    message.push(formats.h1(textContent, isLastElem)); break;
-                }
-                
-                case "H2": {  // Heading 2
-                    message.push(formats.h2(textContent, isLastElem)); break;
-                }
-                
-                case "H3": {  // Heading 3
-                    message.push(formats.h3(textContent, isLastElem)); break;
-                }
-
-                default: {  
-                    // Check class names for other formatting types
-                    // Quote
-                    if(/^blockquote/.test(elem.className)){
-                        message.push(formats.quote(textContent)); 
-                        
-                    // (edited) mark
-                    } else if(/^timestamp/.test(elem.className)){
-                        const text = formats.edited()
-                        if(text) message.push(text)
-
-                    // No special styling
-                    } else {
-                        message.push(textContent);
-                    }
-                }
-            }
-        }
-
-        return message.join("");
-    }
-
-    protected parseMessageAttachments(messageAccessoryElem: Element): string[] {
-        const messageAccessoryImages = Array.from(messageAccessoryElem.querySelectorAll("img")) as HTMLImageElement[];
-
-        return messageAccessoryImages.map((img) => {return img.src});
-    }
+    }    
 
     
-    protected constructMessageContext(MESSAGE_LI: Element) {
-        // li has an id="chat-messages-557327188311932959-1135326475244027975", with first number
-        // being the channel ID and second number being the message ID; that's what we're extracting.
-        const IdRegex = /(\d{18})-(\d{19})/.exec(MESSAGE_LI.id);
-        
-        if(!(IdRegex && IdRegex.length == 3)){
-            console.log(MESSAGE_LI);
-            throw new CouldNotParseError("messageId and serverId not found in <li> id");
-        }
-
-        this.context = {
-            channelId: IdRegex[1],
-            messageId: IdRegex[2]
-        }
-    }
-
-
-    public toMarkdown(): string {
+    public toMarkdown(formats: IMessageFormats): string {
         const markdownArray: string[] = [];
 
         // Nickname, time, reply
@@ -253,26 +198,26 @@ export default class DiscordMessage implements IDiscordMessage {
 
             markdownArray.push(
                 `**${this.header.nickname} - ${date.toLocaleString()}**`
-            )
+            )    
 
             if(this.header.reply){
-                markdownArray.push(this.header.reply.toMarkdown());
-            }
-        }
+                markdownArray.push(this.header.reply.toMarkdown(formats));
+            }    
+        }    
 
         // Text
-        if(this.content.text){
-            markdownArray.push(this.content.text);
+        if(this.content.textRuns){
+            markdownArray.push(textRunsToMarkdown(this.content.textRuns, formats))
         }
 
         // Attachments
         if(this.content.attachments){
             for(const url of this.content.attachments){
                 markdownArray.push(`![](${url})`)
-            }
-        }
+            }    
+        }    
 
         return '>' + markdownArray.join("\n>");
-    }
-}
+    }    
+}    
 

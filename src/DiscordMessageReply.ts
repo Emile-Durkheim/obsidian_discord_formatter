@@ -1,68 +1,70 @@
-import DiscordMessage from "./DiscordMessage"
+import { TextRun } from "./AbstractDiscordMessage"
+import { AbstractDiscordMessage } from "./AbstractDiscordMessage"
 import { IMessageFormats } from "./formats"
-import { CouldNotParseError, EmptyMessageError } from "./types"
+import { EmptyMessageError, textRunsToMarkdown } from "./utils"
+import { CouldNotParseError } from "./utils"
+import { parseMessageText } from "./utils"
 
 
-export default class DiscordMessageReply {
-    context: {
-        messageId: string
-    }
+export default class DiscordMessageReply extends AbstractDiscordMessage {
     content: {
-        text: string
+        textRuns: TextRun[]
     }
     header: {
         nickname: string
     }
 
-    constructor(replyDiv: Element, formats: IMessageFormats){
-        // Has its own constructor separate of DiscordMessage because the HTML layout is pretty different
+    constructor(REPLY_DIV: Element){
+        super(REPLY_DIV);
 
-        // Check if a replyDiv was actually passed in
-        if(!/^message-reply-context/.test(replyDiv.id)){
-            console.error(replyDiv);
+        // Check if a REPLY_DIV was actually passed in
+        if(!/^message-reply-context/.test(REPLY_DIV.id)){
+            console.error(REPLY_DIV);
             throw new CouldNotParseError(`Expected <div id="message-reply-context...">`);
         }
 
 
-        // Parse nickname
-        const nickname = replyDiv.querySelector("[class^='username-']")?.textContent;
-        if(!nickname){
-            console.error(replyDiv);
-            throw new CouldNotParseError(`Expected a <span class='username-'> in div, but querySelector couldn't locate one`);
-        }
-
-        this.header = {nickname: nickname};
-
-
-        // Parse context
-        const messageContentDiv = replyDiv.querySelector("[id^='message-content'");
-        if(!messageContentDiv){
-            console.error(replyDiv);
-            throw new CouldNotParseError(`Expectected a <span id='message-content-...'> in div, but querySelector couldn't locate one`);
-        }
-
-        const regexMessageId = /message-content-(\d{19})/.exec(messageContentDiv.id);
-        if(regexMessageId && regexMessageId.length == 2){
-            this.context = {messageId: regexMessageId[1]};
-        } else {
-            console.error(replyDiv);
-            throw new CouldNotParseError(`Could not find messageId`);
-        }
+        // Parse header (just the nickname in this case)
+        this.header = this.constructMessageHeader(REPLY_DIV);
 
 
         // Parse content
-        const messageContentElems = replyDiv.querySelector("div[id^='message-content']")?.children;
-
-        if(!messageContentElems){
-            console.error(replyDiv);
-            throw new EmptyMessageError(`Message contains no text content`);
-        }
-
-        this.content = { text: DiscordMessage.parseMessageText(messageContentElems, formats) };
+        this.content = this.constructMessageContent(REPLY_DIV)
     }
 
 
-    toMarkdown(): string {
-        return `>**${this.header.nickname}**: ${this.content.text}`;
+    protected constructMessageContent(REPLY_DIV: Element): DiscordMessageReply["content"] {
+        const messageContentElems = this.getMessageTextElems(REPLY_DIV)
+
+        if(!messageContentElems){
+            console.error(REPLY_DIV);
+            throw new EmptyMessageError(`Message contains no text content`);
+        }
+
+        return { textRuns: parseMessageText(messageContentElems) };
+    }
+
+    protected getMessageTextElems(REPLY_DIV: Element): HTMLCollection | undefined {
+        return REPLY_DIV.querySelector("div[id^='message-content']")?.children;
+    }
+
+
+    protected constructMessageHeader(REPLY_DIV: Element): DiscordMessageReply["header"] {
+        const nickname = REPLY_DIV.querySelector("[class^='username-']")?.textContent;
+        if(!nickname){
+            console.error(REPLY_DIV);
+            throw new CouldNotParseError(`Expected a <span class='username-'> in div, but querySelector couldn't locate one`);
+        }
+
+        return {nickname: nickname};
+    }
+
+
+    toMarkdown(formats: IMessageFormats): string {
+        const textRunMarkdown: string = textRunsToMarkdown(this.content.textRuns, formats)
+        
+        const replyMarkdown: string = formats['reply'](textRunMarkdown, this.header.nickname)
+
+        return formats['reply'](replyMarkdown, this.header.nickname);
     }
 }
