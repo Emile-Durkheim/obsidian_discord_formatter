@@ -66,10 +66,8 @@ export default class DiscordMessageReply implements IDiscordMessage {
 
 
     toMarkdown(formats: IMessageFormats): string {
-        const textRunMarkdown: string = textRunsToMarkdown(this.content.textRuns, formats)
+        const replyMarkdown: string = textRunsToMarkdown(this.content.textRuns, formats)
         
-        const replyMarkdown: string = formats['reply'](textRunMarkdown, this.header.nickname)
-
         return formats['reply'](replyMarkdown, this.header.nickname);
     }
 }
