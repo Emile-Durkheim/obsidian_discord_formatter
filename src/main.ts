@@ -61,7 +61,7 @@ export default class DiscordFormatter extends Plugin {
 		}
 
 		event.preventDefault();
-		view.editor.replaceSelection(conversation.toMarkdown());
+		view.editor.replaceSelection(conversation.toMarkdown(this.formats));
 	}
 }
 
