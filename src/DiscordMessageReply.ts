@@ -1,5 +1,5 @@
 import { IDiscordMessage, TextRun } from "./IDiscordMessage"
-import { IMessageFormats } from "./formats"
+import { MessageFormats } from "./formats"
 import { EmptyMessageError, textRunsToMarkdown } from "./utils"
 import { CouldNotParseError } from "./utils"
 import { textRunFactory } from "./utils"
@@ -65,8 +65,11 @@ export default class DiscordMessageReply implements IDiscordMessage {
     }
 
 
-    toMarkdown(formats: IMessageFormats): string {
-        const replyMarkdown: string = textRunsToMarkdown(this.content.textRuns, formats)
+    toMarkdown(formats: MessageFormats): string {
+        let replyMarkdown: string = textRunsToMarkdown(this.content.textRuns, formats);
+
+        // If there's a newline, ensure new line is still shown as a nested quote
+        replyMarkdown = replyMarkdown.replace('\n>', '\n>>');
         
         return formats['reply'](replyMarkdown, this.header.nickname);
     }

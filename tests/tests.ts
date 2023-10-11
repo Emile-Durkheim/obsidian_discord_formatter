@@ -4,12 +4,15 @@
 // the assertions themselves are inline inside this file, rather than stored in a .json in the tests folder.
 
 
+// IMPORTANT 2: Tests are deprecated since settings update
+
+
 import * as fs from 'fs';
 
 import DiscordMessage from "../src/DiscordMessage";
 import DiscordConversation from "../src/DiscordConversation";
 import DiscordSingleMessage from 'src/DiscordSingleMessage';
-import { IMessageFormats } from 'src/formats';
+import { MessageFormats } from 'src/formats';
 
 
 // importing 'assert' gives error: Module "assert" can only be default-imported using the 'allowSyntheticDefaultImports' flags(1259)
@@ -44,7 +47,7 @@ class Tests {
     
     constructor(){}
 
-    run(formats: IMessageFormats){
+    run(formats: MessageFormats){
         console.log("--- TEST START ---");
         this.runMessageTests(formats);
         this.runConversationTests(formats);
@@ -52,7 +55,7 @@ class Tests {
     }
 
 
-    runMessageTests(formats: IMessageFormats){
+    runMessageTests(formats: MessageFormats){
         // Backend: Make sure that filepath.html results in a given object
         const TESTOBJECTS: testObject[] = [
             {   
@@ -88,7 +91,7 @@ class Tests {
     }
 
 
-    runConversationTests(formats: IMessageFormats){
+    runConversationTests(formats: MessageFormats){
         // Define tests as a Map<filepath, object>
         const TESTOBJECTS: testObject[] = [
             {
@@ -150,7 +153,7 @@ class Tests {
     }
 
 
-    runSingleMessageTests(formats: IMessageFormats){
+    runSingleMessageTests(formats: MessageFormats){
         // referring to DiscordSingleMessage class
         const TESTOBJECTS: testObject[] = [
             {

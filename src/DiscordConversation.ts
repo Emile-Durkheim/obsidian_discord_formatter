@@ -1,6 +1,6 @@
 import DiscordMessage from "./DiscordMessage";
 import DiscordSingleMessage from "./DiscordSingleMessage";
-import { IMessageFormats } from "./formats";
+import { MessageFormats } from "./formats";
 import { EmptyMessageError } from "./utils";
 import { CouldNotParseError } from "./utils";
 
@@ -9,7 +9,7 @@ export default class DiscordConversation {
     messages: DiscordMessage[];
 
     
-    constructor(DOM: Document, formats: IMessageFormats){
+    constructor(DOM: Document, formats: MessageFormats){
         if(!this.isDiscordPaste(DOM)){
             throw new CouldNotParseError("Paste doesn't appear to be from Discord")
         }
@@ -18,7 +18,7 @@ export default class DiscordConversation {
     }
     
 
-    static fromRawHTML(HTML: string, formats: IMessageFormats){
+    static fromRawHTML(HTML: string, formats: MessageFormats){
         const parser = new DOMParser();
         const DOM: Document = parser.parseFromString(HTML, 'text/html');
     
@@ -26,7 +26,7 @@ export default class DiscordConversation {
     }
 
 
-    private createMessages(DOM: Document, formats: IMessageFormats): DiscordMessage[] {
+    private createMessages(DOM: Document, formats: MessageFormats): DiscordMessage[] {
         // Factory for Discord messages, as the HTML we get comes in different formats; 
         // 1.) A format with some <ol class="scrollInner"><li>message...</li><li>message,,,</li></ol>
         // 2.) A format, when there's just one message, with <h3>username, time, avatar...</h3><div>message</div>
@@ -105,7 +105,7 @@ export default class DiscordConversation {
 
 
 
-    public toMarkdown(formats: IMessageFormats): string {
+    public toMarkdown(formats: MessageFormats): string {
         const markdownArray: string[] = [];
 
         for(const message of this.messages){

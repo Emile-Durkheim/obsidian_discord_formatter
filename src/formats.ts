@@ -1,7 +1,7 @@
 import { IDiscordFormatterSettings } from "./settings"
 
 
-export interface IMessageFormats {
+export type MessageFormats = {
     reply: (replyText: string, nickname: string) => string,
     edited: () => string,
 
@@ -75,13 +75,13 @@ function addNewLine(content: string): string {
 /** 
  * Helper function so settings can be applied and retrieve the right message formats 
  */
-export function createFormats(settings: IDiscordFormatterSettings): IMessageFormats {
+export function createFormats(settings: IDiscordFormatterSettings): MessageFormats {
     // Defining this with tons of variables because this is the only good way I've found to make it
     // type-safe without TypeScript screaming at me.
 
-    let h1Format: IMessageFormats['h1'];
-    let h2Format: IMessageFormats['h2'];
-    let h3Format: IMessageFormats['h3'];
+    let h1Format: MessageFormats['h1'];
+    let h2Format: MessageFormats['h2'];
+    let h3Format: MessageFormats['h3'];
     if(settings.distinguishHeadings === false){
         h1Format = formats.undistinguishedHeading;
         h2Format = formats.undistinguishedHeading;
@@ -92,14 +92,14 @@ export function createFormats(settings: IDiscordFormatterSettings): IMessageForm
         h3Format = formats.h3;
     }
 
-    let editedFormat: IMessageFormats['edited'];
+    let editedFormat: MessageFormats['edited'];
     if(settings.showEdited === true){
         editedFormat = formats.edited.enabled;
     } else {
         editedFormat = formats.edited.disabled;
     }
 
-    let replyFormat: IMessageFormats['reply'];
+    let replyFormat: MessageFormats['reply'];
     if(settings.showReplies === true) {
         replyFormat = formats.reply.enabled;
     } else {
