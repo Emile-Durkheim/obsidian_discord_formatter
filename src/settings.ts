@@ -30,7 +30,7 @@ export class SettingsTab extends PluginSettingTab {
     containerEl.empty();
 
     new Setting(containerEl)
-      .setName("Show Replies")
+      .setName("Show replies")
       .setDesc("If there's a message reply, paste the message that's been replied to.")
       .addToggle((toggle) => {
         toggle
@@ -42,18 +42,6 @@ export class SettingsTab extends PluginSettingTab {
       })
     
     
-    new Setting(containerEl)
-      .setName("Distinguish Headings")
-      .setDesc("Use a different markdown for each heading level.")
-      .addToggle((toggle) => {
-        toggle
-            .setValue(this.plugin.settings.distinguishHeadings)
-            .onChange(async (value) => {
-                this.plugin.settings.distinguishHeadings = value;
-                await this.plugin.saveSettings();
-            })
-      })
-
     new Setting(containerEl)
       .setName("Show (edited)")
       .setDesc("Copy the *(edited)* mark to Obsidian.")

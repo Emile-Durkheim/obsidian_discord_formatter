@@ -1,6 +1,6 @@
 import DiscordMessage from "./DiscordMessage";
 import DiscordSingleMessage from "./DiscordSingleMessage";
-import { MessageFormats } from "./formats";
+import { IDiscordFormatterSettings } from "./settings";
 import { EmptyMessageError } from "./utils";
 import { CouldNotParseError } from "./utils";
 
@@ -9,24 +9,24 @@ export default class DiscordConversation {
     messages: DiscordMessage[];
 
     
-    constructor(DOM: Document, formats: MessageFormats){
+    constructor(DOM: Document, settings: IDiscordFormatterSettings){
         if(!this.isDiscordPaste(DOM)){
             throw new CouldNotParseError("Paste doesn't appear to be from Discord")
         }
 
-        this.messages = this.createMessages(DOM, formats);
+        this.messages = this.createMessages(DOM, settings);
     }
     
 
-    static fromRawHTML(HTML: string, formats: MessageFormats){
+    static fromRawHTML(HTML: string, settings: IDiscordFormatterSettings){
         const parser = new DOMParser();
         const DOM: Document = parser.parseFromString(HTML, 'text/html');
     
-        return new this(DOM, formats);
+        return new this(DOM, settings);
     }
 
 
-    private createMessages(DOM: Document, formats: MessageFormats): DiscordMessage[] {
+    private createMessages(DOM: Document, settings: IDiscordFormatterSettings): DiscordMessage[] {
         // Factory for Discord messages, as the HTML we get comes in different formats; 
         // 1.) A format with some <ol class="scrollInner"><li>message...</li><li>message,,,</li></ol>
         // 2.) A format, when there's just one message, with <h3>username, time, avatar...</h3><div>message</div>
@@ -105,7 +105,7 @@ export default class DiscordConversation {
 
 
 
-    public toMarkdown(formats: MessageFormats): string {
+    public toMarkdown(settings: IDiscordFormatterSettings): string {
         const markdownArray: string[] = [];
 
         for(const message of this.messages){
@@ -114,7 +114,7 @@ export default class DiscordConversation {
                 markdownArray.push(">");
             }
 
-            markdownArray.push(message.toMarkdown(formats));
+            markdownArray.push(message.toMarkdown(settings));
         }
 
         return markdownArray.join("\n");
