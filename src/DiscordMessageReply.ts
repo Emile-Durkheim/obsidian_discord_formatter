@@ -68,12 +68,14 @@ export default class DiscordMessageReply implements IDiscordMessage {
         const markdownArray: string[] = [];
 
         for(const textRun of this.content.textRuns){
-            markdownArray.push(textRun.toMarkdown(settings));
+                const textRunMarkdown = textRun.toMarkdown(settings, true);
+
+                markdownArray.push(textRunMarkdown);
         }
 
         // If there's a newline, ensure new line is still shown as a nested quote
-        const replyTextMarkdown = markdownArray.join('').replaceAll('\n', '\n>>');
+        const textMarkdown = markdownArray.join('').replaceAll('\n', '\n>>');
         
-        return `>**${this.header.nickname}:** ${replyTextMarkdown}`;
+        return `>**${this.header.nickname}:** ${textMarkdown}`;
     }
 }
