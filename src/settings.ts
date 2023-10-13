@@ -4,14 +4,12 @@ import { App, PluginSettingTab, Setting } from "obsidian";
 
 export interface IDiscordFormatterSettings {
 	showReplies: boolean,
-	distinguishHeadings: boolean,
   showEdited: boolean,
 }
 
 
 export const DEFAULT_SETTINGS: IDiscordFormatterSettings = {
 	showReplies: true,
-	distinguishHeadings: false,
 	showEdited: true
 }
 
