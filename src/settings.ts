@@ -9,7 +9,7 @@ export interface IDiscordFormatterSettings {
 
 
 export const DEFAULT_SETTINGS: IDiscordFormatterSettings = {
-	showReplies: true,
+	showReplies: false,
 	showEdited: true
 }
 
@@ -23,13 +23,13 @@ export class SettingsTab extends PluginSettingTab {
   }
 
   display(): void {
-    const { containerEl } = this;
+    const { containerEl: containerElement } = this;
 
-    containerEl.empty();
+    containerElement.empty();
 
-    new Setting(containerEl)
+    new Setting(containerElement)
       .setName("Show replies")
-      .setDesc("If there's a message reply, paste the message that's been replied to.")
+      .setDesc("If the message you're copying is a reply to another message, also copy the message it's a reply to.")
       .addToggle((toggle) => {
         toggle
             .setValue(this.plugin.settings.showReplies)
@@ -40,9 +40,9 @@ export class SettingsTab extends PluginSettingTab {
       })
     
     
-    new Setting(containerEl)
+    new Setting(containerElement)
       .setName("Show (edited)")
-      .setDesc("Copy the *(edited)* mark to Obsidian.")
+      .setDesc("Copy the *(edited)* mark at the end of an edited message.")
       .addToggle((toggle) => {
         toggle
             .setValue(this.plugin.settings.showEdited)

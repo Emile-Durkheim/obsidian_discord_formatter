@@ -1,4 +1,4 @@
-import DiscordMessage from "./DiscordMessage";
+import DiscordMultiMessage from "./DiscordMultiMessage";
 import DiscordSingleMessage from "./DiscordSingleMessage";
 import { IDiscordFormatterSettings } from "./settings";
 import { EmptyMessageError } from "./utils";
@@ -6,7 +6,7 @@ import { CouldNotParseError } from "./utils";
 
 
 export default class DiscordConversation {
-    messages: DiscordMessage[];
+    messages: DiscordMultiMessage[];
 
     
     constructor(DOM: Document, settings: IDiscordFormatterSettings){
@@ -26,7 +26,7 @@ export default class DiscordConversation {
     }
 
 
-    private createMessages(DOM: Document, settings: IDiscordFormatterSettings): DiscordMessage[] {
+    private createMessages(DOM: Document, settings: IDiscordFormatterSettings): DiscordMultiMessage[] {
         // Factory for Discord messages, as the HTML we get comes in different formats; 
         // 1.) A format with some <ol class="scrollInner"><li>message...</li><li>message,,,</li></ol>
         // 2.) A format, when there's just one message, with <h3>username, time, avatar...</h3><div>message</div>
@@ -39,7 +39,7 @@ export default class DiscordConversation {
 
             for (const message of messageElems){
                 try {
-                    discordMessages.push(new DiscordMessage(message));
+                    discordMessages.push(new DiscordMultiMessage(message));
                 } catch(err) {
                     if(!(err instanceof EmptyMessageError)){
                         throw err;

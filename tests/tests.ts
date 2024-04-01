@@ -2,6 +2,7 @@
 // Let me know if there's a better way. The fact that the file's working directory is tied to some
 // Electron directory from which I can't access the test html files is throwing me off. That's also why
 // the assertions themselves are inline inside this file, rather than stored in a .json in the tests folder.
+const DIR = "/your/tests/dir/here"
 
 
 import * as fs from 'fs';
@@ -39,8 +40,6 @@ type testMarkdown = {fileName: string, markdown: string};
 
 
 class Tests {
-	DIR = "/home/dude/Sync/Obsidian/dev vault/.obsidian/plugins/obsidian_discord_formatter/tests/"
-    
     constructor(){}
 
     run(settings: IDiscordFormatterSettings){
@@ -70,7 +69,7 @@ class Tests {
         
         // assertions
         for (const {fileName, markdown} of TESTOBJECTS){
-            fs.readFile(this.DIR + fileName, 'utf8', (err, data) => {
+            fs.readFile(DIR + fileName, 'utf8', (err, data) => {
                 if (err) {
                     console.error(err);
                     return;

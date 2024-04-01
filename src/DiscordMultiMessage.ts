@@ -26,7 +26,11 @@ export interface IDiscordMessage {
 }
 
 
-export default class DiscordMessage implements IDiscordMessage {
+/**
+ * For messages that consist of multiple Discord messages sent one after the other, but appearing as one.
+ * These are served in an HTML format that's different from single messages, so the parsing works differently.
+ */
+export default class DiscordMultiMessage implements IDiscordMessage {
 
     // Properties as per interface
     content: {
@@ -67,7 +71,7 @@ export default class DiscordMessage implements IDiscordMessage {
     }        
 
 
-    protected constructMessageHeader(MESSAGE_LI: Element): DiscordMessage["header"] {
+    protected constructMessageHeader(MESSAGE_LI: Element): DiscordMultiMessage["header"] {
         const headerDiv = MESSAGE_LI.querySelector("h3[class^='header']");
         if(!headerDiv){
             throw new CouldNotParseError(`No <h3 class='header...'> found`);
@@ -114,7 +118,7 @@ export default class DiscordMessage implements IDiscordMessage {
         
 
         // --- Construct header ---
-        const header: DiscordMessage["header"] = {
+        const header: DiscordMultiMessage["header"] = {
             nickname: nickname,
             timeExact: Date.parse(timeExact),
             timeRelative: timeRelative
@@ -126,7 +130,7 @@ export default class DiscordMessage implements IDiscordMessage {
     }        
 
 
-    protected constructMessageContent(MESSAGE_LI: Element): DiscordMessage["content"] {
+    protected constructMessageContent(MESSAGE_LI: Element): DiscordMultiMessage["content"] {
         const messageTextElems = this.getMessageTextElems(MESSAGE_LI);
         const messageAttachmentElem = MESSAGE_LI.querySelector("div[id^='message-accessories']");
         
@@ -136,7 +140,7 @@ export default class DiscordMessage implements IDiscordMessage {
         }        
         
         
-        const content: DiscordMessage["content"] = {};
+        const content: DiscordMultiMessage["content"] = {};
 
         // Fill text runs
         if(messageTextElems){
