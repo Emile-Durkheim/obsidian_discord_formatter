@@ -2,8 +2,8 @@ import MultiMessage from "./messages/MultiMessage";
 import { IDiscordMessage } from "./messages/IDiscordMessage";
 import SingleMessage from "./messages/SingleMessage";
 import { IDiscordFormatterSettings } from "./settings";
-import { EmptyMessageError } from "./utils";
 import { CouldNotParseError } from "./utils";
+import SystemMessage from "./messages/SystemMessage";
 
 
 export default class Conversation {
@@ -31,7 +31,7 @@ export default class Conversation {
         // Factory for Discord messages, as the HTML we get comes in different formats; 
         // 1.) A format with some <ol class="scrollInner"><li>message...</li><li>message,,,</li></ol>
         // 2.) A format, when there's just one message, with <h3>username, time, avatar...</h3><div>message</div>
-        // Format #1 can be constructed by the DiscordMessage class, format #2 by the DiscordSingleMessage class
+        // Format #1 can be constructed by the DiscordMultiMessage and SystemMessage classes, format #2 by the DiscordSingleMessage class
 
         const discordMessages = []
 
@@ -39,17 +39,14 @@ export default class Conversation {
         if(messageElems.length != 0) {
 
             for (const message of messageElems){
-                try {
+                if(message.firstElementChild?.className.includes("systemMessage") || message.firstElementChild?.className.includes("system_message")) {
+                    discordMessages.push(new SystemMessage(message));
+                } else if(message.firstElementChild?.innerHTML) {
                     discordMessages.push(new MultiMessage(message));
-                } catch(err) {
-                    if(!(err instanceof EmptyMessageError)){
-                        throw err;
-                    } else { 
-                        continue; // Empty li's are expected
-                    }  
+                } else {
+                    continue;  // empty <li>'s are expected, they're served when the container HTML of a message is copied but not any of its content
                 }
-            } 
-
+            }
         } else {
             // Single messages aren't in an <li> (see above), so we just try to
             // construct a message from the pasted dom. If it turns out the paste isn't
@@ -113,9 +110,16 @@ export default class Conversation {
 
         for(const message of this.messages){
             // Insert blank line between different users
-            if(message.header && markdownArray.length > 0){
+            if(markdownArray.length > 0 &&
+                (message.header) ||
+                (message.constructor.name === "SystemMessage")
+            ){
                 markdownArray.push(">");
             }
+
+            if(message.constructor.name === "SystemMessage" && markdownArray.length > 0){
+                markdownArray.push(">")
+            }            
 
             markdownArray.push(message.toMarkdown(settings));
         }

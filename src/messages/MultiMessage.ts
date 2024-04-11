@@ -22,26 +22,18 @@ export default class MultiMessage implements IDiscordMessage {
     
     header?: {
         nickname: string,
-        timeExact: number,
-        timeRelative: string,
+        timestamp: number,
         avatar?: string,
         reply?: ReplyMessage
     }        
     
     
-    constructor(MESSAGE_LI: Element) {
-        // Check if <li> empty => empty <li>'s are common when
-        // copy-pasting Discord messages and should be ignored
-        if(!(MESSAGE_LI.firstElementChild?.innerHTML)){
-            throw new EmptyMessageError("<li> seems to be empty")
-        }        
-
-
+    constructor(messageLi: Element) {
         // Parse the header
         // May throw CouldNotParseError if, for example, header wasn't copied at all or when
         // only half of a timestamp was copied in. In these cases, we skip constructing the header. 
         try {
-            this.header = this.constructMessageHeader(MESSAGE_LI);
+            this.header = this.constructMessageHeader(messageLi);
         } catch (error) {
             if(!(error instanceof CouldNotParseError)){
                 throw error;
@@ -49,12 +41,12 @@ export default class MultiMessage implements IDiscordMessage {
         }        
 
         // Parse the message content; guaranteed to exist
-        this.content = this.constructMessageContent(MESSAGE_LI)
+        this.content = this.constructMessageContent(messageLi)
     }        
 
 
-    protected constructMessageHeader(MESSAGE_LI: Element): MultiMessage["header"] {
-        const headerDiv = MESSAGE_LI.querySelector("h3[class^='header']");
+    protected constructMessageHeader(messageLi: Element): MultiMessage["header"] {
+        const headerDiv = messageLi.querySelector("h3[class^='header']");
         if(!headerDiv){
             throw new CouldNotParseError(`No <h3 class='header...'> found`);
         }        
@@ -68,23 +60,14 @@ export default class MultiMessage implements IDiscordMessage {
         
         // --- Parse time,headerDivuaranteed to exist if a message header exists ---ct timestampheaderli
         const timeExact = headerDiv.querySelector("time")?.dateTime
-        let timeRelative = headerDiv.querySelector("time")?.textContent;  // Gets what's printed on the message; i.e. " -- Yesterday at 12:08"
         
-        if(!(timeExact && timeRelative)){
+        if(!timeExact){
             throw new CouldNotParseError(`Message Header exists, but could not find time`);
-        } else {
-            // cut off the first " -- " from time text " -- Today at 18:43"
-            const regexTimeRelative = /— (.*)/.exec(timeRelative);  
-            if(!(regexTimeRelative && regexTimeRelative.length == 2)){
-                throw new CouldNotParseError("Relative time could not be parsed from Regex");
-            }        
-            
-            timeRelative = regexTimeRelative[1]
-        }        
+        }   
         
 
         // --- Parse avatar, if it exists. Avatar is stored in sister of headerDiv --- 
-        const avatarDiv = MESSAGE_LI.querySelector("img[class^='avatar']") as HTMLImageElement;
+        const avatarDiv = messageLi.querySelector("img[class^='avatar']") as HTMLImageElement;
         let avatarUrl = undefined;
         if(avatarDiv){
             avatarUrl = avatarDiv.src;
@@ -92,7 +75,7 @@ export default class MultiMessage implements IDiscordMessage {
 
 
         // --- Parse MessageReply, if it exists. Reply is stored in sister of headerDiv ---
-        const messageReplyDiv = MESSAGE_LI.querySelector("div[id^='message-reply'");
+        const messageReplyDiv = messageLi.querySelector("div[id^='message-reply'");
         let messageReply = undefined;
         if(messageReplyDiv){
             messageReply = new ReplyMessage(messageReplyDiv);
@@ -102,8 +85,7 @@ export default class MultiMessage implements IDiscordMessage {
         // --- Construct header ---
         const header: MultiMessage["header"] = {
             nickname: nickname,
-            timeExact: Date.parse(timeExact),
-            timeRelative: timeRelative
+            timestamp: Date.parse(timeExact),
         }        
         if(avatarUrl) header.avatar = avatarUrl;
         if(messageReply) header.reply = messageReply;
@@ -112,9 +94,9 @@ export default class MultiMessage implements IDiscordMessage {
     }        
 
 
-    protected constructMessageContent(MESSAGE_LI: Element): MultiMessage["content"] {
-        const messageTextElems = this.getMessageTextElems(MESSAGE_LI);
-        const messageAttachmentElem = MESSAGE_LI.querySelector("div[id^='message-accessories']");
+    protected constructMessageContent(messageLi: Element): MultiMessage["content"] {
+        const messageTextElems = this.getMessageTextElems(messageLi);
+        const messageAttachmentElem = messageLi.querySelector("div[id^='message-accessories']");
         
 
         if(!messageTextElems && !messageAttachmentElem){
@@ -143,11 +125,11 @@ export default class MultiMessage implements IDiscordMessage {
 
 
     /** Gets elements to be consumed by utils/textRunFactory() */
-    protected getMessageTextElems(MESSAGE_LI: Element): HTMLCollection | undefined {  
+    protected getMessageTextElems(messageLi: Element): HTMLCollection | undefined {  
         // If the messageLi contains a reply to a different message, the text of the reply will be caught first by 
         // querySelector id^='message-content'; hence why we filter for a div id=^='message-content' that is the child
         // of a div class^='contents' 
-        return MESSAGE_LI.querySelector("div[class^='contents'] > div[id^='message-content']")?.children;
+        return messageLi.querySelector("div[class^='contents'] > div[id^='message-content']")?.children;
     }        
 
     
@@ -156,7 +138,7 @@ export default class MultiMessage implements IDiscordMessage {
 
         // Nickname, time, reply
         if(this.header){
-            const date = DateTime.fromMillis(this.header.timeExact);
+            const date = DateTime.fromMillis(this.header.timestamp);
             
             markdownArray.push(
                 `**${this.header.nickname} - ${date.toFormat(settings.dateFormat)}**`

@@ -15,9 +15,8 @@ export interface IDiscordMessage {
     // might not be present if user selected only the message text for copy,
     // or if user copied header only partially (i.e. only copied half of the timestamp)
     header?: {
-        nickname: string;
-        timeExact?: number; // unix timestamp in milliseconds
-        timeRelative?: string;
+        nickname?: string;
+        timestamp?: number; // unix timestamp in milliseconds
         avatar?: string; // url
         reply?: ReplyMessage; // not every message is a reply to another message
     };

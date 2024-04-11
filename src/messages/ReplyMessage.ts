@@ -108,7 +108,7 @@ export default class ReplyMessage implements IDiscordMessage {
             
             // Edge case: If reply shortening is on but last run before shortening has exactly 1 character, 
             // its content is purged above, but its special markdown would still be committed (like **b** => ****)
-            if(textRun.content.length !== 0){
+            if(textRun.content.length === 0){
                 break;
             }
 

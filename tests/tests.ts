@@ -2,7 +2,7 @@
 // Let me know if there's a better way. The fact that the file's working directory is tied to some
 // Electron directory from which I can't access the test html files is throwing me off. That's also why
 // the assertions themselves are inline inside this file, rather than stored in a .json in the tests folder.
-const DIR = "your/dir/here/"
+const DIR = "/home/dude/Sync/Obsidian/dev vault/.obsidian/plugins/obsidian_discord_formatter/tests/"
 
 
 import * as fs from 'fs';
@@ -55,7 +55,7 @@ class Tests {
         const TESTOBJECTS: testMarkdown[] = [
             {
                 fileName: "single_message_with_all_formatting.html", 
-                markdown: `>**Herr - 08/08/2023, 22:20**\n>normal *italics* **bold** <u>underline</u> ~~strikethrough~~\n>**HEADING 1**\n>**HEADING 2**\n>**HEADING 3**\n>>quote\n>>with multiple lines\n>🍋 *<img src='https://cdn.discordapp.com/emojis/289470315942248448.webp?size=44&quality=lossless' style='height: var(--font-text-size)'>*\n>\n>gap *(edited)*`
+                markdown: `>**Herr - 08/08/2023, 22:20**\n>normal *italics* **bold** <u>underline</u> ~~strikethrough~~\n>**HEADING 1**\n>**HEADING 2**\n>**HEADING 3**\n>>quote\n>>with multiple lines\n>🍋 <img src='https://cdn.discordapp.com/emojis/289470315942248448.webp?size=44&quality=lossless' style='height: var(--font-text-size)'>\n>\n>gap *(edited)*`
             },
             {
                 fileName: "single_message_with_attachments.html",
@@ -63,7 +63,7 @@ class Tests {
             },
             {
                 fileName: "two_messages_with_reply.html",
-                markdown: `>**Herr - 10/13/2023, 18:36**\n>message above reply *(edited)*\n>\n>**Herr - 10/13/2023, 18:37**\n>>**Herr:** normal\xa0*italics*\xa0**bold**\xa0<u>underline</u>\xa0~~strikethrough~~\xa0**HEADING 1** **HEADING 2** **HEADING 3** > quote\xa0> with multiple lines\xa0🍋\xa0*<img src='https://cdn.discordapp.com/emojis/289470315942248448.webp?size=44&quality=lossless' style='height: var(--font-text-size)'>*\xa0gap\xa0 *(edited)*\n>reply to message with all formatting`
+                markdown: `>**Herr - 10/13/2023, 18:36**\n>message above reply *(edited)*\n>\n>**Herr - 10/13/2023, 18:37**\n>>**Herr:** normal\xa0*italics*\xa0**bold**\xa0<u>underline</u>\xa0~~strikethrough~~\xa0**HEADING 1** **HEADING 2** **HEADING 3** > quote\xa0> with multiple lines\xa0🍋\xa0<img src='https://cdn.discordapp.com/emojis/289470315942248448.webp?size=44&quality=lossless' style='height: var(--font-text-size)'>\xa0gap\xa0 *(edited)*\n>reply to message with all formatting`
             }
         ]
         
