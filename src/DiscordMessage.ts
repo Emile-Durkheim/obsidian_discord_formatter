@@ -1,4 +1,4 @@
-import { CouldNotParseError, EmptyMessageError } from "./utils";
+import { parseMessageContent, CouldNotParseError, EmptyMessageError } from "./utils";
 import DiscordMessageReply from "./DiscordMessageReply";
 
 
@@ -108,20 +108,15 @@ export default class DiscordMessage {
 
 
     private constructMessageContent(li: Element) {
-        const messageFragments: string[] = [];
-        const messageContentSpans = li.querySelector("div[class^='contents'] > div[id^='message-content']")?.children;
+        const messageContentElems = li.querySelector("div[class^='contents'] > div[id^='message-content']")?.children;
 
-        if(!messageContentSpans){
-            throw new EmptyMessageError(`Message contains no text content`);
+        if(!messageContentElems){
             console.error(li);
-        }
-
-        for(const messageContentSpan of Array.from(messageContentSpans)){
-            messageFragments.push(messageContentSpan.innerHTML);
+            throw new EmptyMessageError(`Message contains no text content`);
         }
 
         this.content = {
-            text: messageFragments.join('')
+            text: parseMessageContent(messageContentElems)
         };
     }
 
