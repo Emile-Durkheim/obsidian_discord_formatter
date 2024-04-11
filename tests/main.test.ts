@@ -42,7 +42,7 @@ export default class DiscordFormatter extends Plugin {
 		this.addCommand({
 			id: "run-unit-tests",
 			name: "Debug: Run Unit Tests",
-			callback: () => { Tests.run() }
+			callback: () => { Tests.run(this.formats) }
 		})		
 	}
 
