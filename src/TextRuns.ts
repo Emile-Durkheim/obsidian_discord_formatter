@@ -1,3 +1,5 @@
+import { DateTime } from "luxon";
+
 import { IDiscordFormatterSettings } from "./settings";
 import { CouldNotParseError, EmptyMessageError } from "./utils";
 
@@ -61,8 +63,15 @@ export function textRunFactory(elem: Element): TextRun {
                 return new TextRunQuote(textContent);
 
             // Same as above, class="timestamp-p1Df1m"; content becomes datetime string of time tag in children
-            } else if(elem.className.contains("timestamp") && elem?.firstChild?.nodeName == "TIME"){
-                return new TextRunEdited(textContent);
+            } else if(elem.className.contains("timestamp") && elem?.firstElementChild?.nodeName == "TIME"){
+                const timestamp = DateTime.fromISO(elem?.firstElementChild?.getAttribute('datetime') as string);
+
+                if(timestamp){
+                    return new TextRunEdited(textContent, timestamp);
+                } else {
+                    console.error("Couldn't get timestamp off <time> element on (edited) mark: ", elem);
+                    return new TextRunEdited(textContent, null);
+                }
                 
             // No special styling    
             } else {
@@ -79,9 +88,8 @@ export abstract class TextRun{
     constructor(protected content: string){}
     
     public abstract toMarkdown(
-	settings: IDiscordFormatterSettings, 
-	// Some Textruns need to emit different markdown when they're shown as part of a reply
-	isReply?: boolean
+        // Some Textruns need to emit different markdown when they're shown as part of a reply is
+        settings: IDiscordFormatterSettings, isReply?: boolean
     ): string;
 }
 
@@ -154,8 +162,21 @@ class TextRunEmoji extends TextRun{
 }
 
 class TextRunEdited extends TextRun{
+    constructor(protected content: string, protected timestamp: DateTime | null){
+        super(content);
+    }
+
     public toMarkdown(settings: IDiscordFormatterSettings): string {
-        return ` *(edited)*`;
+        if(settings.showEdited === "off"){
+            return ``;
+        } else if(settings.showEdited === "text" || this.timestamp === null){
+            return ` *(edited)*`;
+        } else if(settings.showEdited === "tag"){
+            const timeString = this.timestamp.toFormat(settings.dateFormat);
+            return ` <i aria-label="Edited at ${timeString}">(edited)</i>`
+        } else {
+            throw new Error(`Expected 'off', 'text' or 'tag' in settings.showEdited, got: ${settings.showEdited}`);
+        }
     }
 }
 

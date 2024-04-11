@@ -1,3 +1,6 @@
+
+import { DateTime } from "luxon";
+
 import { EmptyMessageError, parseMessageAttachments, CouldNotParseError } from "./utils";
 import { textRunFactory, TextRun } from "./TextRuns";
 import DiscordMessageReply from "./DiscordMessageReply";
@@ -174,10 +177,10 @@ export default class DiscordMultiMessage implements IDiscordMessage {
 
         // Nickname, time, reply
         if(this.header){
-            const date = new Date(this.header.timeExact);
-
+            const date = DateTime.fromMillis(this.header.timeExact);
+            
             markdownArray.push(
-                `**${this.header.nickname} - ${date.toLocaleString()}**`
+                `**${this.header.nickname} - ${date.toFormat(settings.dateFormat)}**`
             )        
 
             if(this.header.reply){

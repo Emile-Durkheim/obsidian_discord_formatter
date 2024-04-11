@@ -3,14 +3,16 @@ import { App, PluginSettingTab, Setting } from "obsidian";
 
 
 export interface IDiscordFormatterSettings {
+  dateFormat: string,
 	showReplies: boolean,
-  showEdited: boolean,
+  showEdited: "off" | "text" | "tag"
 }
 
 
 export const DEFAULT_SETTINGS: IDiscordFormatterSettings = {
+  dateFormat: "MM/dd/yyyy, HH:mm",
 	showReplies: false,
-	showEdited: true
+	showEdited: "text"
 }
 
 
@@ -26,6 +28,18 @@ export class SettingsTab extends PluginSettingTab {
     const { containerEl: containerElement } = this;
 
     containerElement.empty();
+    
+    new Setting(containerElement)
+      .setName("Date format")
+      .setDesc("The format the date/time of the message should be displayed in. (See www.foragoodstrftime.com)")
+      .addText((textField) => {
+        textField
+          .setValue(this.plugin.settings.dateFormat)
+          .onChange(async (value) => {
+            this.plugin.settings.dateFormat = value;
+            await this.plugin.saveSettings();
+          })
+      })
 
     new Setting(containerElement)
       .setName("Show replies")
@@ -38,18 +52,20 @@ export class SettingsTab extends PluginSettingTab {
                 await this.plugin.saveSettings();
             })
       })
-    
-    
+
     new Setting(containerElement)
-      .setName("Show (edited)")
-      .setDesc("Copy the *(edited)* mark at the end of an edited message.")
-      .addToggle((toggle) => {
-        toggle
-            .setValue(this.plugin.settings.showEdited)
-            .onChange(async (value) => {
-                this.plugin.settings.showEdited = value;
-                await this.plugin.saveSettings();
-            })
+      .setName("Show (edited) tag")
+      .setDesc("How to copy the *(edited)* tag at the end of an edited message.")
+      .addDropdown((dropdown) => {
+        dropdown
+          .addOption("off", "Don't show")
+          .addOption("text", "As *(edited)* text")
+          .addOption("tag", "As HTML tag")
+          .setValue(this.plugin.settings.showEdited)
+          .onChange(async (value: "off" | "text" | "tag") => {
+              this.plugin.settings.showEdited = value;
+              await this.plugin.saveSettings();
+          })
       })
   }
 }
