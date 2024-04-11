@@ -9,7 +9,7 @@ import { CouldNotParseError, EmptyMessageError } from "./utils";
  */
 export function textRunFactory(elem: Element): TextRun {
     // Check if emojis/custom emojis; parse them
-    if(/^emojiContainer/.test(elem.className)){
+    if(elem.className.contains("emojiContainer")){
         const imgElem = elem.children[0] as HTMLImageElement;
         if(!imgElem){
             throw new CouldNotParseError("parseMessageText: No img element found in span.emojiContainer");
@@ -59,11 +59,11 @@ export function textRunFactory(elem: Element): TextRun {
             // Quote; uses a generic <span> tag and is instead identified by its class name.
             // Appears as class="blockquote-2AkdDH" the last six alphanums being random, 
             // hence why we do a regex on the full class name.
-            if(/blockquote/.test(elem.className)){
+            if(elem.className.contains("blockquote")){
                 return new TextRunQuote(textContent);
 
             // Same as above, class="timestamp-p1Df1m"; content becomes datetime string of time tag in children
-            } else if(/timestamp/.test(elem.className) && elem?.firstChild?.nodeName == "TIME"){
+            } else if(elem.className.contains("timestamp") && elem?.firstChild?.nodeName == "TIME"){
                 return new TextRunEdited(textContent);
                 
             // No special styling    
