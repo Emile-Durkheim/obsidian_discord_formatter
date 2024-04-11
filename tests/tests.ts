@@ -79,10 +79,10 @@ class Tests {
                 const DOM = parser.parseFromString(data, 'text/html');
             
                 const firstLi = DOM.querySelector("li") as HTMLElement;
-                const message = new DiscordMessage(firstLi, formats);
+                const message = new DiscordMessage(firstLi);
 
                 assertEqual(message, object, "DiscordMessage Object equality: " + fileName);
-                assertEqual(message.toMarkdown(), markdown, "DiscordMessage.toMarkdown() equality: " + fileName)
+                assertEqual(message.toMarkdown(formats), markdown, "DiscordMessage.toMarkdown() equality: " + fileName)
             });
         }
     }
@@ -144,7 +144,7 @@ class Tests {
                 const conversation = DiscordConversation.fromRawHTML(data, formats);
 
                 assertEqual(conversation, object, "DiscordConversation Object equality: " + fileName);
-                assertEqual(conversation.toMarkdown(), markdown, "DiscordConversation.toMarkdown() equality: " + fileName)
+                assertEqual(conversation.toMarkdown(formats), markdown, "DiscordConversation.toMarkdown() equality: " + fileName)
             });
         }
     }
@@ -185,10 +185,10 @@ class Tests {
                 const parser = new DOMParser();
                 const DOM = parser.parseFromString(data, 'text/html');
             
-                const singleMessage = new DiscordSingleMessage(DOM.body, formats);
+                const singleMessage = new DiscordSingleMessage(DOM.body);
 
                 assertEqual(singleMessage, object, "SingleMessage Object equality: " + fileName);
-                assertEqual(singleMessage.toMarkdown(), markdown, "SingleMessage.toMarkdown() equality: " + fileName)
+                assertEqual(singleMessage.toMarkdown(formats), markdown, "SingleMessage.toMarkdown() equality: " + fileName)
             });
         }
     }
