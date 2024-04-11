@@ -40,10 +40,6 @@ export default function discordMessageToMarkdown(event: ClipboardEvent): string 
                 throw new Error("Couldn't get username or time.");
             }
 
-            // Insert empty line between different user's messages
-            if(markdown.length != 0){
-                markdown.push('\n');
-            }
             markdown.push(`>**${username}${time}**`);
         }
         
