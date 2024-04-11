@@ -1,8 +1,8 @@
 import { MarkdownView, Plugin } from 'obsidian';
 
 import UnitTests from 'tests/UnitTests';
-import { writeStringToFile } from 'rsc/utils';
-import DiscordConversation from 'rsc/DiscordConversation';
+import { writeClipboardToFile } from 'src/utils';
+import DiscordConversation from 'src/DiscordConversation';
 
 
 interface DiscordFormatterSettings {
@@ -16,10 +16,11 @@ const DEFAULT_SETTINGS: DiscordFormatterSettings = {
 
 export default class DiscordFormatter extends Plugin {
 	settings: DiscordFormatterSettings
+	pasteMessageHandler: (event: ClipboardEvent) => void;
 
 	async onload() {
 		await this.loadSettings();
-
+		
 		this.addCommand({
 			id: "run-unit-tests",
 			name: "Debug: Run Unit Tests",
@@ -27,24 +28,19 @@ export default class DiscordFormatter extends Plugin {
 		})
 		
 		// Define behaviour on paste
-		this.app.workspace.on('editor-paste', (event) => { this.pasteDiscordMessageAsMarkdown(event) })
+		this.pasteMessageHandler = this.pasteMessage.bind(this);
+		this.app.workspace.on('editor-paste', this.pasteMessageHandler)
 
 		// Debug
-		this.app.workspace.on('editor-paste', (clipboardEvent) => {
-			console.log(clipboardEvent.clipboardData?.getData('text/html'));
-			writeStringToFile(clipboardEvent.clipboardData?.getData('text/html'));
-		});
+		this.app.workspace.on('editor-paste', writeClipboardToFile);
 	}
 
 
 	onunload() {
-		this.app.workspace.off('editor-paste', (event) => { this.pasteDiscordMessageAsMarkdown(event) })
+		this.app.workspace.off('editor-paste', this.pasteMessageHandler)
 
 		// Debug
-		this.app.workspace.off('editor-paste', (clipboardEvent) => {
-			console.log(clipboardEvent.clipboardData?.getData('text/html'));
-			writeStringToFile(clipboardEvent.clipboardData?.getData('text/html'));
-		});
+		this.app.workspace.off('editor-paste', writeClipboardToFile);
 	}
 
 
@@ -53,7 +49,7 @@ export default class DiscordFormatter extends Plugin {
 	}
 
 
-	pasteDiscordMessageAsMarkdown(event: ClipboardEvent){
+	pasteMessage(event: ClipboardEvent){
 		const rawHTML = event.clipboardData?.getData('text/html');
 		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 
