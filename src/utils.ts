@@ -62,7 +62,6 @@ export function parseMessageContent(elements: HTMLCollection): string {
                 // Quote
                 if(/^blockquote/.test(elem.className)){
                     message.push(`>${textContent}`); 
-                    break;
 
                 // (edited) mark
                 } else if(/^timestamp/.test(elem.className)){
@@ -70,7 +69,7 @@ export function parseMessageContent(elements: HTMLCollection): string {
 
                 // No special styling
                 } else {
-                    message.push(textContent); break;
+                    message.push(textContent);
                 }
         }
     }
@@ -80,6 +79,7 @@ export function parseMessageContent(elements: HTMLCollection): string {
 
 
 export function writeClipboardToFile(event: ClipboardEvent): void {
+    console.log("Triggered")
     const doc = event.clipboardData?.getData('text/html');
 
     if(!doc){
@@ -89,8 +89,8 @@ export function writeClipboardToFile(event: ClipboardEvent): void {
     
     // Save document to a file
     for(let i=0; i < 30; i++){
-        if(!fs.existsSync(`~/Documents/${i}.html`)){
-            fs.writeFile(`~/Documents/${i}.html`, doc, () => {});
+        if(!fs.existsSync(`${i}.html`)){
+            fs.writeFile(`${i}.html`, doc, () => {});
             return;
         }
     }

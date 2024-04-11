@@ -10,12 +10,18 @@ if you want to view the source, please visit the github repository of this plugi
 `;
 
 const prod = (process.argv[2] === "production");
+const test = (process.argv[2] === "test");
+
+let entryPoint = "src/main.ts";
+if (test) {
+	entryPoint = "tests/main.test.ts";
+}
 
 const context = await esbuild.context({
 	banner: {
 		js: banner,
 	},
-	entryPoints: ["main.ts"],
+	entryPoints: [entryPoint],
 	bundle: true,
 	external: [
 		"obsidian",

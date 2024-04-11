@@ -1,32 +1,81 @@
 import DiscordMessage from "./DiscordMessage";
-import { EmptyMessageError } from "./utils";
+import DiscordSingleMessage from "./DiscordSingleMessage";
+import { CouldNotParseError, EmptyMessageError } from "./utils";
+
 
 export default class DiscordConversation {
     messages: DiscordMessage[];
 
-
-    constructor(doc: Document){
-        this.messages = []; 
-
-        const messageLis: Element[] = Array.from(doc.querySelectorAll("li"));
-
-        for (const li of messageLis){
-            try {
-                this.messages.push(new DiscordMessage(li));
-            } catch(err) {
-                if(!(err instanceof EmptyMessageError)){
-                    throw err;
-                } else { continue; }  // Empty li's are expected
-            }
+    
+    constructor(DOM: Document){
+        if(!this.isDiscordPaste(DOM)){
+            throw new CouldNotParseError("Paste doesn't appear to be from Discord.")
         }
+
+        this.messages = this.createMessages(DOM);
     }
+    
 
-    static fromRawHTML(html: string){
+    static fromRawHTML(HTML: string){
         const parser = new DOMParser();
-        const DOM: Document = parser.parseFromString(html, 'text/html');
-
+        const DOM: Document = parser.parseFromString(HTML, 'text/html');
+    
         return new this(DOM);
     }
+
+
+    private createMessages(DOM: Document): DiscordMessage[] {
+        const discordMessages = []
+
+        const domOfMessages: Element[] = Array.from(DOM.querySelectorAll("li"));
+        if(domOfMessages.length){
+            for (const message of domOfMessages){
+                try {
+                    discordMessages.push(new DiscordMessage(message));
+                } catch(err) {
+                    if(!(err instanceof EmptyMessageError)){
+                        throw err;
+                    } else { 
+                        continue; // Empty li's are expected
+                    }  
+                }
+            }
+        } else {
+            discordMessages.push(new DiscordSingleMessage(DOM.body));
+        }
+
+        return discordMessages;
+    }
+
+
+    private isDiscordPaste(DOM: Document): boolean {
+        const messageElem = DOM.querySelector("div[id^='message-content']");
+
+        // div with such an id must always exist
+        if(!messageElem){
+            console.error("isDiscordPaste FAIL: No <div id='message-content-\\d{19}'")
+            return false;
+        }
+
+        // id must always be followed by 19-digit message id
+        if(!(/message-content-\d{19}/.test(messageElem.id))){
+            console.error("isDiscordPaste FAIL: No <div id='message-content-\\d{19}'")
+            return false;
+        }
+
+        // className must be akin to "markup-eYLPri messageContent-2t3eCI"
+        if(!(/markup-\w{6}/.test(messageElem.className))){
+            console.error("isDiscordPaste FAIL: No <div class='markup-\\w{6}'")
+            return false;
+        }
+        if(!(/markup-\w{6}/.test(messageElem.className))){
+            console.error("isDiscordPaste FAIL: No <div class='messageContent-\\w{6}'")
+            return false;
+        }
+
+        return true;
+    }
+
 
 
     public toMarkdown(): string {

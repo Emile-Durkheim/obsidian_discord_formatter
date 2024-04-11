@@ -1,6 +1,6 @@
 import { MarkdownView, Plugin } from 'obsidian';
 
-import DiscordConversation from './src/DiscordConversation'
+import DiscordConversation from 'src/DiscordConversation';
 
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface

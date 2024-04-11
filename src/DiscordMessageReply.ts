@@ -1,4 +1,5 @@
-import { CouldNotParseError, EmptyMessageError, parseMessageContent } from "./utils"
+import DiscordMessage from "./DiscordMessage"
+import { CouldNotParseError, EmptyMessageError } from "./utils"
 
 
 export default class DiscordMessageReply{
@@ -54,7 +55,7 @@ export default class DiscordMessageReply{
             throw new EmptyMessageError(`Message contains no text content`);
         }
 
-        this.content = { text: parseMessageContent(messageContentElems) };
+        this.content = { text: DiscordMessage.parseMessageContent(messageContentElems) };
     }
 
 

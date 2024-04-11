@@ -1,6 +1,10 @@
-import { MarkdownView, Plugin } from 'obsidian';
+import { MarkdownView, Plugin } from "obsidian";
+import DiscordConversation from "src/DiscordConversation";
 
-import DiscordConversation from './src/DiscordConversation'
+
+// Test
+import UnitTests from "./UnitTests";
+import { writeClipboardToFile } from "src/utils";
 
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -15,15 +19,26 @@ export default class DiscordFormatter extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
-		
+        
+        // Test
+		this.addCommand({
+			id: "run-unit-tests",
+			name: "Debug: Run Unit Tests",
+			callback: () => { UnitTests.run() }
+		})
+
 		// Define behaviour on paste
 		this.pasteMessageHandler = this.pasteMessage.bind(this);
-		this.app.workspace.on('editor-paste', this.pasteMessageHandler)
+		this.app.workspace.on('editor-paste', this.pasteMessageHandler);
+
+		this.app.workspace.on('editor-paste', writeClipboardToFile);
 	}
 
 
 	onunload() {
-		this.app.workspace.off('editor-paste', this.pasteMessageHandler)
+		this.app.workspace.off('editor-paste', this.pasteMessageHandler);
+		
+		this.app.workspace.off('editor-paste', writeClipboardToFile);
 	}
 
 
@@ -53,4 +68,3 @@ export default class DiscordFormatter extends Plugin {
 		view.editor.replaceSelection(conversation.toMarkdown());
 	}
 }
-
