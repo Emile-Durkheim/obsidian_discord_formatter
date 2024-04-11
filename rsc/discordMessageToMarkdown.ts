@@ -1,22 +1,21 @@
-import { log } from 'rsc/utils';
 
 export default function discordMessageToMarkdown(event: ClipboardEvent): string | undefined {
     // Check that there is data in clipboardEvent
     if (!event.clipboardData){
-        log("clipboardData empty")
+        console.error("clipboardData empty")
         return;
     }
     
     // Parse clipboardEvent into a Document if possible
     const messageDOM = clipboardToDocument(event.clipboardData);
     if(!messageDOM){
-        log("No HTML in paste");
+        console.error("No HTML in paste");
         return;
     }
 
     // Ensure it's a Discord message
     if(!isDiscordMessage(messageDOM)){
-        log("Not a Discord message");
+        console.error("Not a Discord message");
         return;
     }
 
@@ -51,7 +50,7 @@ export default function discordMessageToMarkdown(event: ClipboardEvent): string 
         const messageContentSpans = messageDiv.querySelector("div[id*='message-content']")?.children;
 
         if(messageContentSpans === undefined){
-            log("Contains no message: ", messageDiv);
+            console.error("Contains no message: ", messageDiv);
             continue;
         }
 
@@ -63,7 +62,7 @@ export default function discordMessageToMarkdown(event: ClipboardEvent): string 
         markdown.push(`>${messageFragments.join('')}`);
     }
 
-    log(markdown.join('\n'));
+    (markdown.join('\n'));
     return markdown.join('\n');
 }
 
