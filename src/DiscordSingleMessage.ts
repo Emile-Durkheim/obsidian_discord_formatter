@@ -1,5 +1,5 @@
 import DiscordMessage from "./DiscordMessage";
-import { CouldNotParseError, EmptyMessageError } from "./utils";
+import { CouldNotParseError, EmptyMessageError } from "./types";
 
 
 export default class DiscordSingleMessage extends DiscordMessage {

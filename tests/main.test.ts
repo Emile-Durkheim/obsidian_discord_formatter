@@ -4,7 +4,7 @@ import DiscordConversation from "src/DiscordConversation";
 
 // Test
 import UnitTests from "./UnitTests";
-import { writeClipboardToFile } from "src/utils";
+import * as fs from 'fs';
 
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -16,6 +16,7 @@ const DEFAULT_SETTINGS: DiscordFormatterSettings = {}
 export default class DiscordFormatter extends Plugin {
 	settings: DiscordFormatterSettings
 	pasteMessageHandler: (event: ClipboardEvent) => void;
+	writeClipboardHandler: (event: ClipboardEvent) => void;  // Test
 
 	async onload() {
 		await this.loadSettings();
@@ -31,14 +32,16 @@ export default class DiscordFormatter extends Plugin {
 		this.pasteMessageHandler = this.pasteMessage.bind(this);
 		this.app.workspace.on('editor-paste', this.pasteMessageHandler);
 
-		this.app.workspace.on('editor-paste', writeClipboardToFile);
+		// Test
+		this.writeClipboardHandler = this.writeClipboardToFile.bind(this);
+		this.app.workspace.on('editor-paste', this.writeClipboardHandler);
 	}
 
 
 	onunload() {
 		this.app.workspace.off('editor-paste', this.pasteMessageHandler);
-		
-		this.app.workspace.off('editor-paste', writeClipboardToFile);
+
+		this.app.workspace.off('editor-paste', this.writeClipboardHandler);  // Test
 	}
 
 
@@ -52,19 +55,46 @@ export default class DiscordFormatter extends Plugin {
 
 
 	pasteMessage(event: ClipboardEvent){
-		const rawHTML = event.clipboardData?.getData('text/html');
 		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-
-		if(!(rawHTML && view?.editor)){
+		if(!view?.editor){
 			return;
 		}
 		
-		const conversation = DiscordConversation.fromRawHTML(rawHTML);
-		if(conversation.messages.length == 0){
-			return;
+		
+		let conversation: DiscordConversation | undefined = undefined;
+		if(event.clipboardData?.getData('text/html')){
+			const rawHTML = event.clipboardData?.getData('text/html');
+			conversation = DiscordConversation.fromRawHTML(rawHTML);
+		} else if(event.clipboardData?.getData('text')){
+			// const rawText = event.clipboardData?.getData('text');
+			// conversation = DiscordConversation.fromRawText(rawText);
 		}
 
-		event.preventDefault();
-		view.editor.replaceSelection(conversation.toMarkdown());
+		if(conversation && conversation?.messages.length > 0){
+			event.preventDefault();
+			view.editor.replaceSelection(conversation.toMarkdown());
+		}
+	}
+
+
+	private writeClipboardToFile(event: ClipboardEvent){
+		// Test func
+		let string = event.clipboardData?.getData('text/html');
+	
+		if(!string){
+			string = event.clipboardData?.getData('text');
+		}
+
+		if(!string){
+			return;
+		}
+		
+		// Save document to a file
+		for(let i=0; i < 30; i++){
+			if(!fs.existsSync(`${i}.html`)){
+				fs.writeFile(`${i}.html`, string, () => {});
+				return;
+			}
+		}
 	}
 }

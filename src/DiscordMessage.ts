@@ -1,8 +1,8 @@
-import { CouldNotParseError, EmptyMessageError } from "./utils";
+import { CouldNotParseError, EmptyMessageError, IDiscordMessage } from "./types";
 import DiscordMessageReply from "./DiscordMessageReply";
 
 
-export default class DiscordMessage {
+export default class DiscordMessage implements IDiscordMessage {
     content: {
         text: string,
         attachments?: string[]  // contains URL to attachment
