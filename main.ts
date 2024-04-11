@@ -1,7 +1,7 @@
 import { MarkdownView, Plugin } from 'obsidian';
 
 import UnitTests from 'tests/UnitTests';
-// import { writeStringToFile } from 'rsc/utils';
+import { writeStringToFile } from 'rsc/utils';
 import DiscordConversation from 'rsc/DiscordConversation';
 
 
@@ -30,10 +30,10 @@ export default class DiscordFormatter extends Plugin {
 		this.app.workspace.on('editor-paste', (event) => { this.pasteDiscordMessageAsMarkdown(event) })
 
 		// Debug
-		// this.app.workspace.on('editor-paste', (clipboardEvent) => {
-		// 	console.log(clipboardEvent.clipboardData?.getData('text/html'));
-		// 	writeStringToFile(clipboardEvent.clipboardData?.getData('text/html'));
-		// });
+		this.app.workspace.on('editor-paste', (clipboardEvent) => {
+			console.log(clipboardEvent.clipboardData?.getData('text/html'));
+			writeStringToFile(clipboardEvent.clipboardData?.getData('text/html'));
+		});
 	}
 
 
@@ -41,10 +41,10 @@ export default class DiscordFormatter extends Plugin {
 		this.app.workspace.off('editor-paste', (event) => { this.pasteDiscordMessageAsMarkdown(event) })
 
 		// Debug
-		// this.app.workspace.off('editor-paste', (clipboardEvent) => {
-		// 	console.log(clipboardEvent.clipboardData?.getData('text/html'));
-		// 	writeStringToFile(clipboardEvent.clipboardData?.getData('text/html'));
-		// });
+		this.app.workspace.off('editor-paste', (clipboardEvent) => {
+			console.log(clipboardEvent.clipboardData?.getData('text/html'));
+			writeStringToFile(clipboardEvent.clipboardData?.getData('text/html'));
+		});
 	}
 
 

@@ -98,7 +98,6 @@ export default class DiscordMessage {
         const messageContentSpans = li.querySelector("div[id^='message-content']")?.children;
 
         if(!messageContentSpans){
-            console.log(li);
             throw new EmptyMessageError("message contains no text content");
         }
 
