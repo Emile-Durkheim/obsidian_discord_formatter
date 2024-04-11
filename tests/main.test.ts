@@ -77,14 +77,11 @@ export default class DiscordFormatter extends Plugin {
 		if(event.clipboardData?.getData('text/html')){
 			const rawHTML = event.clipboardData?.getData('text/html');
 			conversation = DiscordConversation.fromRawHTML(rawHTML, this.formats);
-		} else if(event.clipboardData?.getData('text')){
-			// const rawText = event.clipboardData?.getData('text');
-			// conversation = DiscordConversation.fromRawText(rawText);
 		}
 
 		if(conversation && conversation?.messages.length > 0){
 			event.preventDefault();
-			view.editor.replaceSelection(conversation.toMarkdown());
+			view.editor.replaceSelection(conversation.toMarkdown(this.formats));
 		}
 	}
 
