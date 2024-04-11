@@ -17,8 +17,8 @@ export function textRunFactory(elem: Element): TextRun {
         
         if(/^:.+:$/.test(imgElem.alt)){  // If it's a custom emoji, then alt text is ':emojiName:'
             return new TextRunCustomEmoji(imgElem.src);
-        } else {  // If it's a unicode emoji, then alt text is the unicode emoji
-            return new TextRunEmoji(imgElem.src);
+        } else {  // If it's a unicode emoji, then the alt text contains the unicode emoji
+            return new TextRunEmoji(imgElem.alt);
         }    
     }    
     
