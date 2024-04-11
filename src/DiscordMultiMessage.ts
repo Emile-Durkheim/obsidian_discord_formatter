@@ -183,7 +183,7 @@ export default class DiscordMultiMessage implements IDiscordMessage {
                 `**${this.header.nickname} - ${date.toFormat(settings.dateFormat)}**`
             )        
 
-            if(this.header.reply){
+            if(this.header.reply && settings.showReplies){
                 markdownArray.push(this.header.reply.toMarkdown(settings));
             }        
         }        
