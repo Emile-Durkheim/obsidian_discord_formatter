@@ -1,7 +1,7 @@
 {
 	"id": "discord-message-formatter",
 	"name": "Discord Message Formatter",
-	"version": "1.3",
+	"version": "1.4",
 	"minAppVersion": "",
 	"description": "Simply CTRL+C CTRL+V Discord messages from the Desktop client and have them automatically formatted",
 	"author": "Emile Durkheim",
