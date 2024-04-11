@@ -4,14 +4,14 @@ import { App, PluginSettingTab, Setting } from "obsidian";
 
 export interface IDiscordFormatterSettings {
   dateFormat: string,
-	showReplies: boolean,
+	showReplies: "off" | "shortened" | "full",
   showEdited: "off" | "text" | "tag"
 }
 
 
 export const DEFAULT_SETTINGS: IDiscordFormatterSettings = {
   dateFormat: "MM/dd/yyyy, HH:mm",
-	showReplies: false,
+	showReplies: "full",
 	showEdited: "text"
 }
 
@@ -42,30 +42,33 @@ export class SettingsTab extends PluginSettingTab {
       })
       
     new Setting(containerElement)
-      .setName("Show (edited) tag")
+      .setName("Copy (edited) tag")
       .setDesc("How to copy the *(edited)* tag at the end of an edited message.")
       .addDropdown((dropdown) => {
         dropdown
-          .addOption("off", "Don't show")
-          .addOption("text", "As *(edited)* text")
-          .addOption("tag", "As HTML tag")
+          .addOption("off", "Don't copy")
+          .addOption("text", "Plain text")
+          .addOption("tag", "Text with editing date on hover")
           .setValue(this.plugin.settings.showEdited)
-          .onChange(async (value: "off" | "text" | "tag") => {
+          .onChange(async (value: IDiscordFormatterSettings["showEdited"]) => {
               this.plugin.settings.showEdited = value;
               await this.plugin.saveSettings();
           })
       })
 
     new Setting(containerElement)
-      .setName("Show replies")
-      .setDesc("If the message you're copying is a reply to another message, also copy the message it's a reply to.")
-      .addToggle((toggle) => {
-        toggle
-            .setValue(this.plugin.settings.showReplies)
-            .onChange(async (value) => {
-                this.plugin.settings.showReplies = value;
-                await this.plugin.saveSettings();
-            })
+      .setName("Copy reply")
+      .setDesc("How to copy a message that's being replied to.")
+      .addDropdown((dropdown) => {
+        dropdown
+          .addOption("off", "Don't copy")
+          .addOption("shortened", "Shorten reply")
+          .addOption("full", "Full reply")
+          .setValue(this.plugin.settings.showReplies)
+          .onChange(async (value: IDiscordFormatterSettings["showReplies"]) => {
+              this.plugin.settings.showReplies = value;
+              await this.plugin.saveSettings();
+          })
       })
   }
 }

@@ -5,6 +5,9 @@ import { textRunFactory } from "./utils"
 import { IDiscordFormatterSettings } from "./settings"
 
 
+const MAX_CHARS_BEFORE_SHORTEN = 70;
+
+
 /**
  * The attached message that a given Discord message is replying to. (May or may not exist on a DiscordMessage)
  */
@@ -23,10 +26,8 @@ export default class DiscordMessageReply implements IDiscordMessage {
             throw new CouldNotParseError(`Expected <div id="message-reply-context...">`);
         }
 
-
         // Parse header (just the nickname in this case)
         this.header = this.constructMessageHeader(replyDiv);
-
 
         // Parse content
         this.content = this.constructMessageContent(replyDiv)
@@ -81,11 +82,43 @@ export default class DiscordMessageReply implements IDiscordMessage {
 
     toMarkdown(settings: IDiscordFormatterSettings): string {
         const markdownArray: string[] = [];
-        
-        for(const textRun of this.content.textRuns){
-                const textRunMarkdown = textRun.toMarkdown(settings, true);
 
+        let characterCount = 0;
+        let isOverMaxCharCount = false;
+        const doShortenReplies = settings.showReplies === "shortened";
+
+        for(let i=0; i < this.content.textRuns.length && !(doShortenReplies && isOverMaxCharCount); i++){
+            const textRun = this.content.textRuns[i]
+
+
+            if(doShortenReplies){
+                characterCount += textRun.content.length;
+
+                if(characterCount >= MAX_CHARS_BEFORE_SHORTEN){
+                    isOverMaxCharCount = true;
+                }
+            }
+            
+
+            // Shorten message content
+            if(doShortenReplies && isOverMaxCharCount){
+                const overflowingCharCount = characterCount - MAX_CHARS_BEFORE_SHORTEN;
+                textRun.content = textRun.content.slice(0, textRun.content.length - overflowingCharCount);
+            }
+            
+            
+            const textRunMarkdown = textRun.toMarkdown(settings, true);
+            
+            // Edge case: If reply shortening is on but last run before shortening has exactly 1 character, 
+            // its content is purged above, but its special markdown would still be committed (like **b** => ****)
+            if(textRun.content.length !== 0){
                 markdownArray.push(textRunMarkdown);
+            }
+
+
+            if(doShortenReplies && isOverMaxCharCount){
+                markdownArray.push('...');
+            }
         }
 
         // If there's a newline, ensure new line is still shown as a nested quote

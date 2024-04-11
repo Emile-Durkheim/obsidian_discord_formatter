@@ -1,10 +1,9 @@
 import { DateTime } from "luxon";
-
 import { IDiscordFormatterSettings } from "./settings";
 
 
 export abstract class TextRun{
-    constructor(readonly content: string){}
+    constructor(public content: string){}
     
     public abstract toMarkdown(
         // Some Textruns need to emit different markdown when they're shown as part of a reply is
@@ -81,7 +80,7 @@ export class TextRunEmoji extends TextRun{
 }
 
 export class TextRunEdited extends TextRun{
-    constructor(readonly content: string, readonly timestamp: DateTime | null){
+    constructor(public content: string, readonly timestamp: DateTime | null){
         super(content);
     }
 
@@ -100,7 +99,11 @@ export class TextRunEdited extends TextRun{
 }
 
 export class TextRunCustomEmoji extends TextRun{
+    constructor(readonly linkToEmoji: string){
+        super('#');  // '#' so when content.length is queried, textrun length is considered to be 1 (important when shortening replies)
+    }
+
     public toMarkdown(settings: IDiscordFormatterSettings): string {
-        return `*<img src='${this.content}' style='height: var(--font-text-size)'>*`;
+        return `<img src='${this.linkToEmoji}' style='height: var(--font-text-size)'>`;
     }
 }

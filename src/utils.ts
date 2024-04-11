@@ -1,5 +1,5 @@
-import { TextRun, TextRunCustomEmoji, TextRunEmoji, TextRunItalics, TextRunBold, TextRunUnderline, TextRunStrikethrough, TextRunHeading, TextRunQuote, TextRunEdited, TextRunDefault } from "./TextRuns";
 import { DateTime } from "luxon";
+import { TextRun, TextRunCustomEmoji, TextRunEmoji, TextRunItalics, TextRunBold, TextRunUnderline, TextRunStrikethrough, TextRunHeading, TextRunQuote, TextRunEdited, TextRunDefault } from "./TextRuns";
 
 
 /** Thrown when unexpected HTML is encountered that can't be parsed. */
@@ -22,8 +22,6 @@ export class EmptyMessageError extends Error {
     }
 }
 
-
-// --- Funcs that get reused occasionally ---
 
 export function parseMessageAttachments(messageAccessoryElem: Element): string[] {
     // Element looks like <div id="message-accessories-1143322541809750056"> and contains all images
