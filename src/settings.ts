@@ -5,14 +5,16 @@ import { App, PluginSettingTab, Setting } from "obsidian";
 export interface IDiscordFormatterSettings {
   dateFormat: string,
 	showReplies: "off" | "shortened" | "full",
-  showEdited: "off" | "text" | "tag"
+  showEdited: "off" | "text" | "tag",
+  showSystemMessages: boolean
 }
 
 
 export const DEFAULT_SETTINGS: IDiscordFormatterSettings = {
   dateFormat: "MM/dd/yyyy, HH:mm",
 	showReplies: "full",
-	showEdited: "text"
+	showEdited: "text",
+  showSystemMessages: false
 }
 
 
@@ -67,6 +69,18 @@ export class SettingsTab extends PluginSettingTab {
           .setValue(this.plugin.settings.showReplies)
           .onChange(async (value: IDiscordFormatterSettings["showReplies"]) => {
               this.plugin.settings.showReplies = value;
+              await this.plugin.saveSettings();
+          })
+      })
+
+    new Setting(containerElement)
+      .setName("Copy system messages")
+      .setDesc('Copy messages like "User started call", "User joined server", ...')
+      .addToggle((toggle) => {
+        toggle
+          .setValue(this.plugin.settings.showSystemMessages)
+          .onChange(async (value: IDiscordFormatterSettings["showSystemMessages"]) => {
+              this.plugin.settings.showSystemMessages = value;
               await this.plugin.saveSettings();
           })
       })

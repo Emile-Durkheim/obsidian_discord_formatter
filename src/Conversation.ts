@@ -109,17 +109,15 @@ export default class Conversation {
         const markdownArray: string[] = [];
 
         for(const message of this.messages){
-            // Insert blank line between different users
-            if(markdownArray.length > 0 &&
-                (message.header) ||
-                (message.constructor.name === "SystemMessage")
-            ){
-                markdownArray.push(">");
+            // Skip system messages if disabled
+            if(settings.showSystemMessages === false && message.constructor.name === "SystemMessage"){
+                continue;
             }
 
-            if(message.constructor.name === "SystemMessage" && markdownArray.length > 0){
-                markdownArray.push(">")
-            }            
+            // Insert blank line between different users
+            if(markdownArray.length > 0 && message.header){
+                markdownArray.push(">");
+            }
 
             markdownArray.push(message.toMarkdown(settings));
         }
