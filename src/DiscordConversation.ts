@@ -9,7 +9,7 @@ export default class DiscordConversation {
     
     constructor(DOM: Document){
         if(!this.isDiscordPaste(DOM)){
-            throw new CouldNotParseError("Paste doesn't appear to be from Discord.")
+            throw new CouldNotParseError("Paste doesn't appear to be from Discord")
         }
 
         this.messages = this.createMessages(DOM);
@@ -25,10 +25,19 @@ export default class DiscordConversation {
 
 
     private createMessages(DOM: Document): DiscordMessage[] {
+        // Factory for Discord messages, as the HTML we get comes in different formats; 
+        // 1.) A format with some <ol class="scrollInner"><li>message...</li><li>message,,,</li></ol>
+        // 2.) A format, when there's just one message, with <h3>username, time, avatar...</h3><div>message</div>
+        // Format #1 can be constructed by the DiscordMessage class, format #2 by the DiscordSingleMessage class
+        //
+        // Don't kill me for this, I only noticed that the second one exists when I was already
+        // 80% done with this plugin. And that's the band-aid solution I chose to go with.
+        // If you've got suggestions for how to make this suck less, please do let me know. 
+
         const discordMessages = []
 
         const domOfMessages: Element[] = Array.from(DOM.querySelectorAll("li"));
-        if(domOfMessages.length){
+        if(domOfMessages.length > 0){
             for (const message of domOfMessages){
                 try {
                     discordMessages.push(new DiscordMessage(message));
@@ -49,31 +58,47 @@ export default class DiscordConversation {
 
 
     private isDiscordPaste(DOM: Document): boolean {
-        const messageElem = DOM.querySelector("div[id^='message-content']");
-
-        // div with such an id must always exist
-        if(!messageElem){
-            console.error("isDiscordPaste FAIL: No <div id='message-content-\\d{19}'")
-            return false;
+        // Check if it's a text message
+        const messageContentElem = DOM.querySelector("div[id^='message-content']");
+        if(messageContentElem){
+            // div id must always be followed by 19-digit message id
+            if(!(/message-content-\d{19}/.test(messageContentElem.id))){
+                console.error("isDiscordPaste FAIL: No <div id='message-content-\\d{19}'")
+                return false;
+            }
+    
+            // className must be akin to "markup-eYLPri messageContent-2t3eCI"
+            if(!(/markup-[\w\d]{6}/.test(messageContentElem.className))){
+                console.error("isDiscordPaste FAIL: No <div class='markup-\\w{6}'")
+                return false;
+            }
+            if(!(/messageContent-[\w\d]{6}/.test(messageContentElem.className))){
+                console.error("isDiscordPaste FAIL: No <div class='messageContent-\\w{6}'")
+                return false;
+            }
+    
+            return true;
         }
 
-        // id must always be followed by 19-digit message id
-        if(!(/message-content-\d{19}/.test(messageElem.id))){
-            console.error("isDiscordPaste FAIL: No <div id='message-content-\\d{19}'")
-            return false;
+        // If not a text message, check if it's a media message 
+        const messageAccesoriesElem = DOM.querySelector("div[id^='message-accessories']");
+        if(messageAccesoriesElem){
+            // div id must always be followed by 19-digit message id
+            if(!(/message-accessories-\d{19}/.test(messageAccesoriesElem.id))){
+                console.error("isDiscordPaste FAIL: No <div id='message-accessories-\\d{19}'")
+                return false;
+            }
+            
+            // className must always be akin to "container-2EofcI"
+            if(!(/container-[\w\d]{6}/.test(messageAccesoriesElem.className))){
+                console.error("isDiscordPaste FAIL: No <div class='container-\\w{6}'")
+                return false;
+            }
+
+            return true;
         }
 
-        // className must be akin to "markup-eYLPri messageContent-2t3eCI"
-        if(!(/markup-\w{6}/.test(messageElem.className))){
-            console.error("isDiscordPaste FAIL: No <div class='markup-\\w{6}'")
-            return false;
-        }
-        if(!(/markup-\w{6}/.test(messageElem.className))){
-            console.error("isDiscordPaste FAIL: No <div class='messageContent-\\w{6}'")
-            return false;
-        }
-
-        return true;
+        return false;
     }
 
 

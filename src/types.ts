@@ -26,12 +26,12 @@ export interface IDiscordMessage {
     toMarkdown(): string
 
     content: {
-        text: string,
-        attachments?: string[]  // contains URL to attachment
+        text?: string,
+        attachments?: string[]  // contains URL to attachment(s)
     }
     
     context: {
-        channelId?: string
+        channelId: string
         messageId?: string,  // messaged ID will be unknown when paste happens to be 
                              // in DiscordSingleMessage format
     };

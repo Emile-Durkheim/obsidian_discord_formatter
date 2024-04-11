@@ -11,15 +11,15 @@ export default class DiscordSingleMessage extends DiscordMessage {
         // This type of HTML can't contain a reply, so its HTML structure is more basic.
         // The message content is exposed right away in a direct child of the message div,
         // so we need to change the querySelector
-        const messageContentElems = messageDiv.querySelector("div[id^='message-content']")?.children;
+        const messageTextElems = messageDiv.querySelector("div[id^='message-content']")?.children;
 
-        if(!messageContentElems){
+        if(!messageTextElems){
             console.error(messageDiv);
             throw new EmptyMessageError(`Message contains no text content`);
         }
 
         this.content = {
-            text: DiscordMessage.parseMessageContent(messageContentElems)
+            text: this.parseMessageText(messageTextElems)
         };
     }
 

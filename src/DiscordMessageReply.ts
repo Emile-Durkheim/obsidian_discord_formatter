@@ -55,7 +55,7 @@ export default class DiscordMessageReply {
             throw new EmptyMessageError(`Message contains no text content`);
         }
 
-        this.content = { text: DiscordMessage.parseMessageContent(messageContentElems) };
+        this.content = { text: DiscordMessage.parseMessageText(messageContentElems) };
     }
 
 
