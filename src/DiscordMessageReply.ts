@@ -1,12 +1,11 @@
-import { TextRun } from "./AbstractDiscordMessage"
-import { AbstractDiscordMessage } from "./AbstractDiscordMessage"
+import { IDiscordMessage, TextRun } from "./IDiscordMessage"
 import { IMessageFormats } from "./formats"
 import { EmptyMessageError, textRunsToMarkdown } from "./utils"
 import { CouldNotParseError } from "./utils"
-import { parseMessageText } from "./utils"
+import { textRunFactory } from "./utils"
 
 
-export default class DiscordMessageReply extends AbstractDiscordMessage {
+export default class DiscordMessageReply implements IDiscordMessage {
     content: {
         textRuns: TextRun[]
     }
@@ -15,8 +14,6 @@ export default class DiscordMessageReply extends AbstractDiscordMessage {
     }
 
     constructor(REPLY_DIV: Element){
-        super(REPLY_DIV);
-
         // Check if a REPLY_DIV was actually passed in
         if(!/^message-reply-context/.test(REPLY_DIV.id)){
             console.error(REPLY_DIV);
@@ -40,10 +37,18 @@ export default class DiscordMessageReply extends AbstractDiscordMessage {
             console.error(REPLY_DIV);
             throw new EmptyMessageError(`Message contains no text content`);
         }
+        
+        // Fill text runs
+        const textRuns = [] as TextRun[];
+        for(const elem of Array.from(messageContentElems)){
+            textRuns.push(textRunFactory(elem));
+        }
 
-        return { textRuns: parseMessageText(messageContentElems) };
+        return { textRuns: textRuns };
     }
 
+
+    /** Gets elements to be consumed by utils/textRunFactory() */
     protected getMessageTextElems(REPLY_DIV: Element): HTMLCollection | undefined {
         return REPLY_DIV.querySelector("div[id^='message-content']")?.children;
     }

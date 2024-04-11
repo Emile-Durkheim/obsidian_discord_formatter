@@ -1,4 +1,4 @@
-import { TextRun } from "./AbstractDiscordMessage";
+import { TextRun } from "./IDiscordMessage";
 import { IMessageFormats } from "./formats";
 
 
@@ -31,88 +31,79 @@ export class EmptyMessageError extends Error {
  *  The children will be <strong>, <u>, <h1>... tags to denote their formatting; this allows us
  *  to push them 
  */
-export function parseMessageText(messageContentElems: HTMLCollection): TextRun[] {
-    const textRuns: TextRun[] = []
-
-    for(const elem of Array.from(messageContentElems)){
-        
-        // Check if emojis/custom emojis; parse them
-        if(/^emojiContainer/.test(elem.className)){
-            const imgElem = elem.children[0] as HTMLImageElement;
-            if(!imgElem){
-                throw new CouldNotParseError("parseMessageText: No img element found in span.emojiContainer");
-            }    
-            
-            if(/^:.+:$/.test(imgElem.alt)){  // If it's a custom emoji, then alt text is ':emojiName:'
-                textRuns.push({type: "customEmoji", content: imgElem.src});
-            } else {  // If it's a unicode emoji, then alt text is the unicode emoji
-                textRuns.push({type: "emoji", content: imgElem.alt});
-            }    
-            
-            continue;
+export function textRunFactory(elem: Element): TextRun {
+    // Check if emojis/custom emojis; parse them
+    if(/^emojiContainer/.test(elem.className)){
+        const imgElem = elem.children[0] as HTMLImageElement;
+        if(!imgElem){
+            throw new CouldNotParseError("parseMessageText: No img element found in span.emojiContainer");
         }    
         
-        
-        // Check if message has text; parse it along with its format
-        let textContent = elem.textContent;
-        if(!textContent){
-            throw new CouldNotParseError("parseMessageText: Message run contains neither text content nor emoji")
-        }
-
-        // If there's a newline in the message, start the next line in a new quote
-        textContent = textContent.replace("\n", "\n>");
-
-
-        // Check the the type of a node to determine what kind of formatting the text has.
-        switch(elem.nodeName){
-            case "EM": { // italics
-                textRuns.push({type: "italics", content: textContent}); break;
-            }    
-
-            case "STRONG": { // bold
-                textRuns.push({type: "bold", content: textContent}); break;
-            }    
-
-            case "U": { // underline
-                textRuns.push({type: "underline", content: textContent}); break;
-            }    
-
-            case "S": {  // strikethrough
-                textRuns.push({type: "strikethrough", content: textContent}); break;
-            }    
-            
-            case "H1": {  // Heading 1
-                textRuns.push({type: "h1", content: textContent}); break;
-            }    
-            
-            case "H2": {  // Heading 2
-                textRuns.push({type: "h2", content: textContent}); break;
-            }    
-            
-            case "H3": {  // Heading 3
-                textRuns.push({type: "h3", content: textContent}); break;
-            }    
-
-            case "TIME": {  // (edited) mark
-                textRuns.push({type: "edited", content: (elem as HTMLTimeElement).dateTime}); break;
-            }    
-
-            default: {
-                // Quote; uses a generic <span> tag and is instead identified by its class name.
-                // Appears as class="blockquote-2AkdDH" the last six alphanums being random, 
-                // hence why we do a regex on the full class name.
-                if(/blockquote/.test(elem.className)){
-                    textRuns.push({type: "quote", content: textContent}); 
-                    
-                // No special styling    
-                } else {
-                    textRuns.push({type: "default", content: textContent});
-                }    
-            }    
+        if(/^:.+:$/.test(imgElem.alt)){  // If it's a custom emoji, then alt text is ':emojiName:'
+            return {type: "customEmoji", content: imgElem.src};
+        } else {  // If it's a unicode emoji, then alt text is the unicode emoji
+            return {type: "emoji", content: imgElem.alt};
         }    
     }    
+    
+    
+    // Check if message has text; parse it along with its format
+    let textContent = elem.textContent;
+    if(!textContent){
+        throw new CouldNotParseError("parseMessageText: Message run contains neither text content nor emoji")
+    }
 
-    return textRuns;
+    // If there's a newline in the message, start the next line in a new quote
+    textContent = textContent.replace("\n", "\n>");
+
+
+    // Check the the type of a node to determine what kind of formatting the text has.
+    switch(elem.nodeName){
+        case "EM": { // italics
+            return {type: "italics", content: textContent}; break;
+        }    
+
+        case "STRONG": { // bold
+            return {type: "bold", content: textContent}; break;
+        }    
+
+        case "U": { // underline
+            return {type: "underline", content: textContent}; break;
+        }    
+
+        case "S": {  // strikethrough
+            return {type: "strikethrough", content: textContent}; break;
+        }    
+        
+        case "H1": {  // Heading 1
+            return {type: "h1", content: textContent}; break;
+        }    
+        
+        case "H2": {  // Heading 2
+            return {type: "h2", content: textContent}; break;
+        }    
+        
+        case "H3": {  // Heading 3
+            return {type: "h3", content: textContent}; break;
+        }    
+
+        case "TIME": {  // (edited) mark
+            return {type: "edited", content: (elem as HTMLTimeElement).dateTime}; break;
+        }    
+
+        default: {
+            // Quote; uses a generic <span> tag and is instead identified by its class name.
+            // Appears as class="blockquote-2AkdDH" the last six alphanums being random, 
+            // hence why we do a regex on the full class name.
+            if(/blockquote/.test(elem.className)){
+                return {type: "quote", content: textContent}; 
+                
+            // No special styling    
+            } else {
+                return {type: "default", content: textContent};
+            }    
+        }
+    }
 }    
 
 

@@ -2,7 +2,8 @@ import { EmptyMessageError, parseMessageAttachments, textRunsToMarkdown } from "
 import { CouldNotParseError } from "./utils";
 import DiscordMessageReply from "./DiscordMessageReply";
 import { IMessageFormats } from "./formats";
-import { parseMessageText } from "./utils";
+import { textRunFactory } from "./utils";
+import { IDiscordMessage } from "./IDiscordMessage";
 
 
 export type TextRun = {
@@ -23,41 +24,7 @@ export type TextRun = {
 };
 
 
-export abstract class AbstractDiscordMessage {
-    // content will exist on a message, but there might both be only attachments and
-    // no text on a message, or only text but not attachments
-    content: {
-        textRuns?: TextRun[];
-        attachments?: string[]; // contains URL to attachment(s)
-    };
-    
-    // might not be present if user selected only the message text for copy,
-    // or if user copied header only partially (i.e. only copied half of the timestamp)
-    header?: {
-        nickname: string;
-        timeExact?: number; // unix timestamp in milliseconds
-        timeRelative?: string;
-        avatar?: string; // url
-        reply?: DiscordMessageReply;  // not every message is a reply to another message
-    };
-
-
-
-    constructor(MESSAGE_LI: Element){
-        // fill
-    }
-
-    protected abstract constructMessageHeader(MESSAGE_LI: Element): AbstractDiscordMessage["header"];
-
-    protected abstract constructMessageContent(MESSAGE_LI: Element): AbstractDiscordMessage["content"];
-
-    protected abstract getMessageTextElems(MESSAGE_LI: Element): HTMLCollection | undefined;
-    
-    public abstract toMarkdown(formats: IMessageFormats): string;
-}
-
-
-export default class DiscordMessage extends AbstractDiscordMessage {
+export default class DiscordMessage implements IDiscordMessage {
 
     // Properties as per interface
     content: {
@@ -75,8 +42,6 @@ export default class DiscordMessage extends AbstractDiscordMessage {
     
     
     constructor(MESSAGE_LI: Element) {
-        super(MESSAGE_LI);
-
         // Check if <li> empty => empty <li>'s are common when
         // copy-pasting Discord messages and should be ignored
         if(!(MESSAGE_LI.firstElementChild?.innerHTML)){
@@ -169,10 +134,17 @@ export default class DiscordMessage extends AbstractDiscordMessage {
         }    
         
         
-        const content: Record<string, TextRun[] | string[]> = {}
+        const content: DiscordMessage["content"] = {};
+
+        // Fill text runs
         if(messageTextElems){
-            content.textRuns = parseMessageText(messageTextElems);
-        }    
+            content.textRuns = [];
+            for(const elem of Array.from(messageTextElems)){
+                content.textRuns.push(textRunFactory(elem));
+            }
+        }
+
+        // Fill attachments
         if(messageAttachmentElem){
             content.attachments = parseMessageAttachments(messageAttachmentElem);
         }    
@@ -180,7 +152,9 @@ export default class DiscordMessage extends AbstractDiscordMessage {
 
         return content;
     }    
-    
+
+
+    /** Gets elements to be consumed by utils/textRunFactory() */
     protected getMessageTextElems(MESSAGE_LI: Element): HTMLCollection | undefined {  
         // If the messageLi contains a reply to a different message, the text of the reply will be caught first by 
         // querySelector id^='message-content'; hence why we filter for a div id=^='message-content' that is the child
