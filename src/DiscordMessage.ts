@@ -1,27 +1,29 @@
-import { EmptyMessageError, parseMessageAttachments, textRunsToMarkdown } from "./utils";
-import { CouldNotParseError } from "./utils";
+import { EmptyMessageError, parseMessageAttachments, CouldNotParseError } from "./utils";
+import { textRunFactory, TextRun } from "./TextRuns";
 import DiscordMessageReply from "./DiscordMessageReply";
-import { MessageFormats } from "./formats";
-import { textRunFactory } from "./utils";
-import { IDiscordMessage } from "./IDiscordMessage";
+import { IDiscordFormatterSettings } from "./settings";
 
 
-export type TextRun = {
-    content: string;
-    type:
-    "default" |
-    "italics" |
-    "bold" |
-    "underline" |
-    "strikethrough" |
-    "h1" |
-    "h2" |
-    "h3" |
-    "quote" |
-    "edited" |
-    "emoji" |
-    "customEmoji";
-};
+export interface IDiscordMessage {
+    // content will exist on a message, but there might both be only attachments and
+    // no text on a message, or only text but not attachments
+    content: {
+        textRuns?: TextRun[];
+        attachments?: string[]; // contains URL to attachment(s)
+    };
+
+    // might not be present if user selected only the message text for copy,
+    // or if user copied header only partially (i.e. only copied half of the timestamp)
+    header?: {
+        nickname: string;
+        timeExact?: number; // unix timestamp in milliseconds
+        timeRelative?: string;
+        avatar?: string; // url
+        reply?: DiscordMessageReply; // not every message is a reply to another message
+    };
+
+    toMarkdown(settings: IDiscordFormatterSettings): string;
+}
 
 
 export default class DiscordMessage implements IDiscordMessage {
@@ -30,7 +32,7 @@ export default class DiscordMessage implements IDiscordMessage {
     content: {
         textRuns?: TextRun[],  
         attachments?: string[]
-    }    
+    }        
     
     header?: {
         nickname: string,
@@ -38,7 +40,7 @@ export default class DiscordMessage implements IDiscordMessage {
         timeRelative: string,
         avatar?: string,
         reply?: DiscordMessageReply
-    }    
+    }        
     
     
     constructor(MESSAGE_LI: Element) {
@@ -46,7 +48,7 @@ export default class DiscordMessage implements IDiscordMessage {
         // copy-pasting Discord messages and should be ignored
         if(!(MESSAGE_LI.firstElementChild?.innerHTML)){
             throw new EmptyMessageError("<li> seems to be empty")
-        }    
+        }        
 
 
         // Parse the header
@@ -57,25 +59,25 @@ export default class DiscordMessage implements IDiscordMessage {
         } catch (error) {
             if(!(error instanceof CouldNotParseError)){
                 throw error;
-            }    
-        }    
+            }        
+        }        
 
         // Parse the message content; guaranteed to exist
         this.content = this.constructMessageContent(MESSAGE_LI)
-    }    
+    }        
 
 
     protected constructMessageHeader(MESSAGE_LI: Element): DiscordMessage["header"] {
         const headerDiv = MESSAGE_LI.querySelector("h3[class^='header']");
         if(!headerDiv){
             throw new CouldNotParseError(`No <h3 class='header...'> found`);
-        }    
+        }        
 
         // --- Parse nickname, guaranteed to exist if a message header exists ---
         const nickname = headerDiv.querySelector("span[class^='username']")?.textContent;
         if(!nickname){
             throw new CouldNotParseError(`Message Header exists, but could not find nickname`);
-        }    
+        }        
 
         
         // --- Parse time,headerDivuaranteed to exist if a message header exists ---ct timestampheaderli
@@ -89,10 +91,10 @@ export default class DiscordMessage implements IDiscordMessage {
             const regexTimeRelative = /— (.*)/.exec(timeRelative);  
             if(!(regexTimeRelative && regexTimeRelative.length == 2)){
                 throw new CouldNotParseError("Relative time could not be parsed from Regex");
-            }    
+            }        
             
             timeRelative = regexTimeRelative[1]
-        }    
+        }        
         
 
         // --- Parse avatar, if it exists. Avatar is stored in sister of headerDiv --- 
@@ -100,7 +102,7 @@ export default class DiscordMessage implements IDiscordMessage {
         let avatarUrl = undefined;
         if(avatarDiv){
             avatarUrl = avatarDiv.src;
-        }    
+        }        
 
 
         // --- Parse MessageReply, if it exists. Reply is stored in sister of headerDiv ---
@@ -108,7 +110,7 @@ export default class DiscordMessage implements IDiscordMessage {
         let messageReply = undefined;
         if(messageReplyDiv){
             messageReply = new DiscordMessageReply(messageReplyDiv);
-        }    
+        }        
         
 
         // --- Construct header ---
@@ -116,12 +118,12 @@ export default class DiscordMessage implements IDiscordMessage {
             nickname: nickname,
             timeExact: Date.parse(timeExact),
             timeRelative: timeRelative
-        }    
+        }        
         if(avatarUrl) header.avatar = avatarUrl;
         if(messageReply) header.reply = messageReply;
 
         return header;
-    }    
+    }        
 
 
     protected constructMessageContent(MESSAGE_LI: Element): DiscordMessage["content"] {
@@ -131,7 +133,7 @@ export default class DiscordMessage implements IDiscordMessage {
 
         if(!messageTextElems && !messageAttachmentElem){
             throw new EmptyMessageError(`Message contains neither text content nor attachments`);
-        }    
+        }        
         
         
         const content: DiscordMessage["content"] = {};
@@ -141,17 +143,17 @@ export default class DiscordMessage implements IDiscordMessage {
             content.textRuns = [];
             for(const elem of Array.from(messageTextElems)){
                 content.textRuns.push(textRunFactory(elem));
-            }
-        }
+            }    
+        }    
 
         // Fill attachments
         if(messageAttachmentElem){
             content.attachments = parseMessageAttachments(messageAttachmentElem);
-        }    
+        }        
 
 
         return content;
-    }    
+    }        
 
 
     /** Gets elements to be consumed by utils/textRunFactory() */
@@ -160,10 +162,10 @@ export default class DiscordMessage implements IDiscordMessage {
         // querySelector id^='message-content'; hence why we filter for a div id=^='message-content' that is the child
         // of a div class^='contents' 
         return MESSAGE_LI.querySelector("div[class^='contents'] > div[id^='message-content']")?.children;
-    }    
+    }        
 
     
-    public toMarkdown(formats: MessageFormats): string {
+    public toMarkdown(settings: IDiscordFormatterSettings): string {
         const markdownArray: string[] = [];
 
         // Nickname, time, reply
@@ -172,26 +174,31 @@ export default class DiscordMessage implements IDiscordMessage {
 
             markdownArray.push(
                 `**${this.header.nickname} - ${date.toLocaleString()}**`
-            )    
+            )        
 
             if(this.header.reply){
-                markdownArray.push(this.header.reply.toMarkdown(formats));
-            }    
-        }    
+                markdownArray.push(this.header.reply.toMarkdown(settings));
+            }        
+        }        
 
         // Text
         if(this.content.textRuns){
-            markdownArray.push(textRunsToMarkdown(this.content.textRuns, formats))
-        }
+            const textMarkdownArray: string[] = []
+            for(const textRun of this.content.textRuns){
+                textMarkdownArray.push(textRun.toMarkdown(settings))
+            }    
+
+            markdownArray.push(textMarkdownArray.join(''));
+        }    
 
         // Attachments
         if(this.content.attachments){
             for(const url of this.content.attachments){
                 markdownArray.push(`![](${url})`)
-            }    
-        }    
+            }        
+        }        
 
         return '>' + markdownArray.join("\n>");
-    }    
-}    
+    }        
+}        
 

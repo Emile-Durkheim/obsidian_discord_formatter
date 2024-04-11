@@ -2,7 +2,6 @@ import { MarkdownView, Plugin } from 'obsidian';
 
 import DiscordConversation from 'src/DiscordConversation';
 import { IDiscordFormatterSettings, SettingsTab } from './settings';
-import { MessageFormats, createFormats } from './formats';
 
 
 const DEFAULT_SETTINGS: IDiscordFormatterSettings = {
@@ -14,7 +13,6 @@ const DEFAULT_SETTINGS: IDiscordFormatterSettings = {
 
 export default class DiscordFormatter extends Plugin {
 	settings: IDiscordFormatterSettings
-	formats: MessageFormats
 	pasteMessageHandler: (event: ClipboardEvent) => void;
 
 	async onload() {
@@ -36,12 +34,10 @@ export default class DiscordFormatter extends Plugin {
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-		this.formats = createFormats(this.settings);
 	}
 
 	async saveSettings() {
 		this.saveData(this.settings);
-		this.formats = createFormats(this.settings);
 	}
 
 
@@ -55,13 +51,13 @@ export default class DiscordFormatter extends Plugin {
 		}
 		
 
-		const conversation = DiscordConversation.fromRawHTML(rawHTML, this.formats);
+		const conversation = DiscordConversation.fromRawHTML(rawHTML, this.settings);
 		if(conversation.messages.length == 0){
 			return;
 		}
 
 		event.preventDefault();
-		view.editor.replaceSelection(conversation.toMarkdown(this.formats));
+		view.editor.replaceSelection(conversation.toMarkdown(this.settings));
 	}
 }
 

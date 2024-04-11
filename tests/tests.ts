@@ -12,7 +12,7 @@ import * as fs from 'fs';
 import DiscordMessage from "../src/DiscordMessage";
 import DiscordConversation from "../src/DiscordConversation";
 import DiscordSingleMessage from 'src/DiscordSingleMessage';
-import { MessageFormats } from 'src/formats';
+import { IDiscordFormatterSettings } from 'src/settings';
 
 
 // importing 'assert' gives error: Module "assert" can only be default-imported using the 'allowSyntheticDefaultImports' flags(1259)
@@ -47,15 +47,15 @@ class Tests {
     
     constructor(){}
 
-    run(formats: MessageFormats){
+    run(settings: IDiscordFormatterSettings){
         console.log("--- TEST START ---");
-        this.runMessageTests(formats);
-        this.runConversationTests(formats);
-        this.runSingleMessageTests(formats);  // referring to DiscordSingleMessage class
+        this.runMessageTests(settings);
+        this.runConversationTests(settings);
+        this.runSingleMessageTests(settings);  // referring to DiscordSingleMessage class
     }
 
 
-    runMessageTests(formats: MessageFormats){
+    runMessageTests(settings: IDiscordFormatterSettings){
         // Backend: Make sure that filepath.html results in a given object
         const TESTOBJECTS: testObject[] = [
             {   
@@ -85,13 +85,13 @@ class Tests {
                 const message = new DiscordMessage(firstLi);
 
                 assertEqual(message, object, "DiscordMessage Object equality: " + fileName);
-                assertEqual(message.toMarkdown(formats), markdown, "DiscordMessage.toMarkdown() equality: " + fileName)
+                assertEqual(message.toMarkdown(settings), markdown, "DiscordMessage.toMarkdown() equality: " + fileName)
             });
         }
     }
 
 
-    runConversationTests(formats: MessageFormats){
+    runConversationTests(settings: IDiscordFormatterSettings){
         // Define tests as a Map<filepath, object>
         const TESTOBJECTS: testObject[] = [
             {
@@ -144,16 +144,16 @@ class Tests {
                     return;
                 }
                 
-                const conversation = DiscordConversation.fromRawHTML(data, formats);
+                const conversation = DiscordConversation.fromRawHTML(data, settings);
 
                 assertEqual(conversation, object, "DiscordConversation Object equality: " + fileName);
-                assertEqual(conversation.toMarkdown(formats), markdown, "DiscordConversation.toMarkdown() equality: " + fileName)
+                assertEqual(conversation.toMarkdown(settings), markdown, "DiscordConversation.toMarkdown() equality: " + fileName)
             });
         }
     }
 
 
-    runSingleMessageTests(formats: MessageFormats){
+    runSingleMessageTests(settings: IDiscordFormatterSettings){
         // referring to DiscordSingleMessage class
         const TESTOBJECTS: testObject[] = [
             {
@@ -191,7 +191,7 @@ class Tests {
                 const singleMessage = new DiscordSingleMessage(DOM.body);
 
                 assertEqual(singleMessage, object, "SingleMessage Object equality: " + fileName);
-                assertEqual(singleMessage.toMarkdown(formats), markdown, "SingleMessage.toMarkdown() equality: " + fileName)
+                assertEqual(singleMessage.toMarkdown(settings), markdown, "SingleMessage.toMarkdown() equality: " + fileName)
             });
         }
     }

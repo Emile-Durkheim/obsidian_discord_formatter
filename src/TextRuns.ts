@@ -1,0 +1,151 @@
+import { IDiscordFormatterSettings } from "./settings";
+import { CouldNotParseError, EmptyMessageError } from "./utils";
+
+
+/** Runs through a <div id="message-content-...">'s children and turns them into TextRuns.
+ *
+ *  The children will be <strong>, <u>, <h1>... tags to denote their formatting; this allows us
+ *  to push them
+ */
+export function textRunFactory(elem: Element): TextRun {
+    // Check if emojis/custom emojis; parse them
+    if(/^emojiContainer/.test(elem.className)){
+        const imgElem = elem.children[0] as HTMLImageElement;
+        if(!imgElem){
+            throw new CouldNotParseError("parseMessageText: No img element found in span.emojiContainer");
+        }    
+        
+        if(/^:.+:$/.test(imgElem.alt)){  // If it's a custom emoji, then alt text is ':emojiName:'
+            return new TextRunCustomEmoji(imgElem.src);
+        } else {  // If it's a unicode emoji, then alt text is the unicode emoji
+            return new TextRunEmoji(imgElem.src);
+        }    
+    }    
+    
+    
+    // Check if message has text; parse it along with its format
+    let textContent = elem.textContent;
+    if(!textContent){
+        // May happen when system message is displayed
+        throw new EmptyMessageError("parseMessageText: Message run contains neither text content nor emoji")
+    }
+
+    // If there's a newline in the message, start the next line in a new quote
+    textContent = textContent.replace("\n", "\n>");
+
+
+    // Check the the type of a node to determine what kind of formatting the text has.
+    switch(elem.nodeName){
+        case "EM": {
+            return new TextRunItalics(textContent); break;
+        }    
+
+        case "STRONG": {
+            return new TextRunBold(textContent); break;
+        }    
+
+        case "U": {
+            return new TextRunUnderline(textContent); break;
+        }    
+
+        case "S": {
+            return new TextRunStrikethrough(textContent); break;
+        }    
+        
+        case "H1":
+        case "H2":
+        case "H3": {
+            return new TextRunHeading(textContent); break;
+        }    
+
+        default: {
+            // Quote; uses a generic <span> tag and is instead identified by its class name.
+            // Appears as class="blockquote-2AkdDH" the last six alphanums being random, 
+            // hence why we do a regex on the full class name.
+            if(/blockquote/.test(elem.className)){
+                return new TextRunQuote(textContent);
+
+            // Same as above, class="timestamp-p1Df1m"; content becomes datetime string of time tag in children
+            } else if(/timestamp/.test(elem.className) && elem?.firstChild?.nodeName == "TIME"){
+                return new TextRunEdited(textContent);
+                
+            // No special styling    
+            } else {
+                return new TextRunDefault(textContent);
+            }    
+        }
+    }
+} 
+
+
+
+export abstract class TextRun{
+    constructor(protected content: string){}
+    
+    public abstract toMarkdown(settings: IDiscordFormatterSettings): string;
+}
+
+
+class TextRunDefault extends TextRun{
+    public toMarkdown(settings: IDiscordFormatterSettings): string {
+        return `${this.content}`;
+    }
+}
+
+class TextRunItalics extends TextRun{
+    public toMarkdown(settings: IDiscordFormatterSettings): string {
+        return `*${this.content}*`;
+    }
+}
+
+class TextRunBold extends TextRun{
+    public toMarkdown(settings: IDiscordFormatterSettings): string {
+        return `**${this.content}**`;
+    }
+}
+
+class TextRunUnderline extends TextRun{
+    public toMarkdown(settings: IDiscordFormatterSettings): string {
+        return `<u>${this.content}</u>`;
+    }
+}
+
+class TextRunStrikethrough extends TextRun{
+    public toMarkdown(settings: IDiscordFormatterSettings): string {
+        return `~~${this.content}~~`;
+    }
+}
+
+class TextRunQuote extends TextRun{
+    public toMarkdown(settings: IDiscordFormatterSettings): string {
+        return `>${this.content}`;
+    }
+}
+
+class TextRunHeading extends TextRun{
+    public toMarkdown(settings: IDiscordFormatterSettings): string {
+        // Since headings don't come with a \n as part of their text content,
+        // we add one ourselves
+        return `**${this.content}**\n`;
+    }
+}
+
+class TextRunEmoji extends TextRun{
+    public toMarkdown(settings: IDiscordFormatterSettings): string {
+        return `${this.content}`;
+    }
+}
+
+class TextRunEdited extends TextRun{
+    public toMarkdown(settings: IDiscordFormatterSettings): string {
+        return ` *(edited)*`;
+    }
+}
+
+class TextRunCustomEmoji extends TextRun{
+    public toMarkdown(settings: IDiscordFormatterSettings): string {
+        return `*<img src='${this.content}' style='height: var(--font-text-size)'>*`;
+    }
+}
+
+

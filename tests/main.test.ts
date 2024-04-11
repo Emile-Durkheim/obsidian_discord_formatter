@@ -3,7 +3,6 @@
 import { MarkdownView, Plugin } from "obsidian";
 import DiscordConversation from "src/DiscordConversation";
 import { IDiscordFormatterSettings, SettingsTab } from 'src/settings';
-import { MessageFormats, createFormats } from "src/formats";
 
 
 // Test
@@ -19,7 +18,6 @@ const DEFAULT_SETTINGS: IDiscordFormatterSettings = {
 
 export default class DiscordFormatter extends Plugin {
 	settings: IDiscordFormatterSettings
-	formats: MessageFormats
 	pasteMessageHandler: (event: ClipboardEvent) => void;
 	writeClipboardHandler: (event: ClipboardEvent) => void;  // Test
 
@@ -42,7 +40,7 @@ export default class DiscordFormatter extends Plugin {
 		this.addCommand({
 			id: "run-unit-tests",
 			name: "Debug: Run Unit Tests",
-			callback: () => { Tests.run(this.formats) }
+			callback: () => { Tests.run(this.settings) }
 		})		
 	}
 
@@ -56,12 +54,10 @@ export default class DiscordFormatter extends Plugin {
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-		this.formats = createFormats(this.settings);
 	}
 
 	async saveSettings() {
 		this.saveData(this.settings);
-		this.formats = createFormats(this.settings);
 	}
 
 
@@ -76,12 +72,12 @@ export default class DiscordFormatter extends Plugin {
 		let conversation: DiscordConversation | undefined = undefined;
 		if(event.clipboardData?.getData('text/html')){
 			const rawHTML = event.clipboardData?.getData('text/html');
-			conversation = DiscordConversation.fromRawHTML(rawHTML, this.formats);
+			conversation = DiscordConversation.fromRawHTML(rawHTML, this.settings);
 		}
 
 		if(conversation && conversation?.messages.length > 0){
 			event.preventDefault();
-			view.editor.replaceSelection(conversation.toMarkdown(this.formats));
+			view.editor.replaceSelection(conversation.toMarkdown(this.settings));
 		}
 	}
 
