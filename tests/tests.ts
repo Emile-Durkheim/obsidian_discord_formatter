@@ -1,4 +1,10 @@
-import * as fs from 'fs';  // won't let me do a normal import, god knows why
+// IMPORTANT: Adjust DIR in the UnitTests class to the directory that the plugin is contained in.
+// Let me know if there's a better way. The fact that the file's working directory is tied to some
+// Electron directory from which I can't access the test html files is throwing me off. That's also why
+// the assertions themselves are inline inside this file, rather than stored in a .json in the tests folder.
+
+
+import * as fs from 'fs';
 
 import DiscordMessage from "../src/DiscordMessage";
 import DiscordConversation from "../src/DiscordConversation";
@@ -32,7 +38,7 @@ function assertEqual(outputValue: object | string, assertionValue: object | stri
 type testObject = {fileName: string, object: object, markdown: string};
 
 
-class UnitTests {
+class Tests {
 	DIR = "/home/dude/Sync/dev vault/.obsidian/plugins/discord-message-formatter/tests/"
     
     constructor(){}
@@ -118,6 +124,11 @@ class UnitTests {
                 fileName: "single_with_custom_emojis.html",
                 object: {"messages":[{"header":{"nickname":"Herr","timeExact":1692649260204,"timeRelative":"Today at 22:21"},"context":{"channelId":"114327860366934837"},"content":{"text":"<img src='https://cdn.discordapp.com/emojis/289470315942248448.webp?size=96&quality=lossless' style='height: var(--font-text-size)'>"}}]},
                 markdown: `>**Herr - 8/21/2023, 10:21:00 PM**\n><img src='https://cdn.discordapp.com/emojis/289470315942248448.webp?size=96&quality=lossless' style='height: var(--font-text-size)'>`
+            },
+            {
+                fileName: "several_with_attachments.html",
+                object: {"messages":[{"header":{"nickname":"Herr","timeExact":1692655959816,"timeRelative":"Today at 00:12"},"context":{"channelId":"138567305459142796","messageId":"1143306703878766633"},"content":{"text":"hello world *(edited)*"}},{"context":{"channelId":"138567305459142796","messageId":"1143307020049584188"},"content":{"text":"abacaba"}},{"header":{"nickname":"Herr","timeExact":1692657247448,"timeRelative":"Today at 00:34","avatar":"https://cdn.discordapp.com/avatars/132166096286515200/d094d931f04b153aaaeb736c7f9718e9.webp?size=80"},"context":{"channelId":"138567305459142796","messageId":"1143312104598810689"},"content":{"text":"accompanying message text","attachments":["https://media.discordapp.net/attachments/1138567305459142796/1143312104103870516/Herr_portrait_of_weird_worm_person_69c468d8-c741-4728-96ab-b8016fff0a2d_1.png?width=273&height=273","https://media.discordapp.net/attachments/1138567305459142796/1143312104556875816/Herr_weird_creepy_worm_person_cd6e3e60-3e2a-4a11-b21e-d076f9c7317b.png?width=273&height=273"]}},{"header":{"nickname":"Herr","timeExact":1692659735873,"timeRelative":"Today at 01:15","avatar":"https://cdn.discordapp.com/avatars/132166096286515200/d094d931f04b153aaaeb736c7f9718e9.webp?size=80"},"context":{"channelId":"138567305459142796","messageId":"1143322541809750056"},"content":{"attachments":["https://media.discordapp.net/attachments/1138567305459142796/1143322540970872902/catjam.gif"]}}]},
+                markdown: `>**Herr - 8/22/2023, 12:12:39 AM**\n>hello world *(edited)*\n>abacaba\n>\n>**Herr - 8/22/2023, 12:34:07 AM**\n>accompanying message text\n>![](https://media.discordapp.net/attachments/1138567305459142796/1143312104103870516/Herr_portrait_of_weird_worm_person_69c468d8-c741-4728-96ab-b8016fff0a2d_1.png?width=273&height=273)\n>![](https://media.discordapp.net/attachments/1138567305459142796/1143312104556875816/Herr_weird_creepy_worm_person_cd6e3e60-3e2a-4a11-b21e-d076f9c7317b.png?width=273&height=273)\n>\n>**Herr - 8/22/2023, 1:15:35 AM**\n>![](https://media.discordapp.net/attachments/1138567305459142796/1143322540970872902/catjam.gif)`
             }
         ]
         
@@ -150,7 +161,17 @@ class UnitTests {
                 fileName: "single_with_unicode_emojis.html",
                 object: {"header":{"nickname":"Herr","timeExact":1692649260204,"timeRelative":"Today at 22:21"},"context":{"channelId":"114327860366934837"},"content":{"text":"🍋 🍆 🇩🇪"}},
                 markdown: `>**Herr - 8/21/2023, 10:21:00 PM**\n>🍋 🍆 🇩🇪`
-            }
+            },
+            {
+                fileName: "single_with_attachments_and_text.html",
+                object: {"header":{"nickname":"Herr","timeExact":1692657247448,"timeRelative":"Today at 00:34"},"context":{"channelId":"114331210459881068"},"content":{"text":"accompanying message text","attachments":["https://media.discordapp.net/attachments/1138567305459142796/1143312104103870516/Herr_portrait_of_weird_worm_person_69c468d8-c741-4728-96ab-b8016fff0a2d_1.png?width=273&height=273","https://media.discordapp.net/attachments/1138567305459142796/1143312104556875816/Herr_weird_creepy_worm_person_cd6e3e60-3e2a-4a11-b21e-d076f9c7317b.png?width=273&height=273"]}},
+                markdown: `>**Herr - 8/22/2023, 12:34:07 AM**\n>accompanying message text\n>![](https://media.discordapp.net/attachments/1138567305459142796/1143312104103870516/Herr_portrait_of_weird_worm_person_69c468d8-c741-4728-96ab-b8016fff0a2d_1.png?width=273&height=273)\n>![](https://media.discordapp.net/attachments/1138567305459142796/1143312104556875816/Herr_weird_creepy_worm_person_cd6e3e60-3e2a-4a11-b21e-d076f9c7317b.png?width=273&height=273)`
+            },
+            {
+                fileName: "single_with_only_attachment.html",
+                object: {"header":{"nickname":"Herr","timeExact":1692659735873,"timeRelative":"Today at 01:15"},"context":{"channelId":"114332254180975005"},"content":{"attachments":["https://media.discordapp.net/attachments/1138567305459142796/1143322540970872902/catjam.gif"]}},
+                markdown: `>**Herr - 8/22/2023, 1:15:35 AM**\n>![](https://media.discordapp.net/attachments/1138567305459142796/1143322540970872902/catjam.gif)`
+            },
         ]
 
         for (const {fileName, object, markdown} of TESTOBJECTS){
@@ -172,4 +193,4 @@ class UnitTests {
     }
 }
 
-export default new UnitTests();
+export default new Tests();

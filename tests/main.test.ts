@@ -1,9 +1,11 @@
+// This file is duplicated code from main.ts; not the ideal solution I'm aware
+
 import { MarkdownView, Plugin } from "obsidian";
 import DiscordConversation from "src/DiscordConversation";
 
 
 // Test
-import UnitTests from "./UnitTests";
+import Tests from "./tests";
 import * as fs from 'fs';
 
 
@@ -25,7 +27,7 @@ export default class DiscordFormatter extends Plugin {
 		this.addCommand({
 			id: "run-unit-tests",
 			name: "Debug: Run Unit Tests",
-			callback: () => { UnitTests.run() }
+			callback: () => { Tests.run() }
 		})
 
 		// Define behaviour on paste
