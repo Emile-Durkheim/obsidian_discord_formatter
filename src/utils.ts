@@ -50,7 +50,8 @@ export function textRunFactory(elem: Element): TextRun {
     // Check if message has text; parse it along with its format
     let textContent = elem.textContent;
     if(!textContent){
-        throw new CouldNotParseError("parseMessageText: Message run contains neither text content nor emoji")
+        // May happen when system message is displayed
+        throw new EmptyMessageError("parseMessageText: Message run contains neither text content nor emoji")
     }
 
     // If there's a newline in the message, start the next line in a new quote
@@ -87,16 +88,16 @@ export function textRunFactory(elem: Element): TextRun {
             return {type: "h3", content: textContent}; break;
         }    
 
-        case "TIME": {  // (edited) mark
-            return {type: "edited", content: (elem as HTMLTimeElement).dateTime}; break;
-        }    
-
         default: {
             // Quote; uses a generic <span> tag and is instead identified by its class name.
             // Appears as class="blockquote-2AkdDH" the last six alphanums being random, 
             // hence why we do a regex on the full class name.
             if(/blockquote/.test(elem.className)){
-                return {type: "quote", content: textContent}; 
+                return {type: "quote", content: textContent};
+
+            // Same as above, class="timestamp-p1Df1m"; content becomes datetime string of time tag in children
+            } else if(/timestamp/.test(elem.className) && elem?.firstChild?.nodeName == "TIME"){
+                return {type: "edited", content: (elem.firstChild as HTMLTimeElement).dateTime};
                 
             // No special styling    
             } else {
