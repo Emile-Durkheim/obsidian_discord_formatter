@@ -18,8 +18,8 @@ export function writeDocumentToFile(doc: Document): void {
 }
 
 
-export function log(object: string | Error): void{
+export function log(...params: any[]): void{
 	if(SETTINGS.debug){
-		console.log(object);
+        console.log(...params);
 	}
 }
