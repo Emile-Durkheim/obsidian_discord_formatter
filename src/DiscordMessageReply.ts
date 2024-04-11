@@ -1,6 +1,7 @@
 import { IDiscordMessage } from "./DiscordMultiMessage"
 import { EmptyMessageError, CouldNotParseError } from "./utils"
-import { textRunFactory, TextRun } from "./TextRuns"
+import { TextRun } from "./TextRuns"
+import { textRunFactory } from "./utils"
 import { IDiscordFormatterSettings } from "./settings"
 
 
@@ -80,7 +81,7 @@ export default class DiscordMessageReply implements IDiscordMessage {
 
     toMarkdown(settings: IDiscordFormatterSettings): string {
         const markdownArray: string[] = [];
-
+        
         for(const textRun of this.content.textRuns){
                 const textRunMarkdown = textRun.toMarkdown(settings, true);
 

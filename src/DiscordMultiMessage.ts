@@ -2,7 +2,8 @@
 import { DateTime } from "luxon";
 
 import { EmptyMessageError, parseMessageAttachments, CouldNotParseError } from "./utils";
-import { textRunFactory, TextRun } from "./TextRuns";
+import { TextRun } from "./TextRuns";
+import { textRunFactory } from "./utils";
 import DiscordMessageReply from "./DiscordMessageReply";
 import { IDiscordFormatterSettings } from "./settings";
 
