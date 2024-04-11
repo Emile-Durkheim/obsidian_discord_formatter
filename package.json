@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-sample-plugin",
+	"name": "obsidian-discord-formatter",
 	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"description": "Obsidian.md plugin that lets you copy Discord conversations and perfectly formats them to Obsidian Markdown!",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
