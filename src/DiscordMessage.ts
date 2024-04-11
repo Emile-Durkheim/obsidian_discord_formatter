@@ -186,8 +186,6 @@ export default class DiscordMessage implements IDiscordMessage {
             const textMarkdownArray: string[] = [];
 
             for(const textRun of this.content.textRuns){
-                console.log("TextRun: ", textRun);
-
                 let textRunMarkdown = textRun.toMarkdown(settings);
 
                 // Replace newlines so that, even if newline in text message,

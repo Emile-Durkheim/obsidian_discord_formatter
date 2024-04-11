@@ -25,7 +25,6 @@ export function textRunFactory(elem: Element): TextRun {
     
     // Check if message has text; parse it along with its format
     const textContent = elem.textContent;
-    console.log("Factory textContent: ", textContent);
     if(!textContent){
         // May happen when system message is displayed
         throw new EmptyMessageError("parseMessageText: Message run contains neither text content nor emoji")
@@ -79,7 +78,11 @@ export function textRunFactory(elem: Element): TextRun {
 export abstract class TextRun{
     constructor(protected content: string){}
     
-    public abstract toMarkdown(settings: IDiscordFormatterSettings): string;
+    public abstract toMarkdown(
+        settings: IDiscordFormatterSettings, 
+        // Some Textruns need to emit different markdown when they're shown as part of a reply
+        isReply?: boolean
+    ): string;
 }
 
 
@@ -130,10 +133,17 @@ class TextRunQuote extends TextRun{
 }
 
 class TextRunHeading extends TextRun{
-    public toMarkdown(settings: IDiscordFormatterSettings): string {
+    public toMarkdown(settings: IDiscordFormatterSettings, isReply: boolean): string {
         // Since headings don't come with a \n as part of their text content,
-        // we add one ourselves
-        return `**${this.content}**\n`;
+        // we add one ourselves; but since replies have no newlines at all, we
+        // need to *not* do this when it's emitted as part of a reply
+        const markdown = `**${this.content}**`;
+
+        if(isReply){
+            return `${markdown} `;
+        } else {
+            return `${markdown}\n`;
+        }
     }
 }
 
