@@ -1,5 +1,5 @@
 import { TextRun } from "./IDiscordMessage";
-import { IMessageFormats } from "./formats";
+import { MessageFormats } from "./formats";
 
 
 // --- Custom Exceptions ---
@@ -119,7 +119,7 @@ export function parseMessageAttachments(messageAccessoryElem: Element): string[]
 }    
 
 
-export function textRunsToMarkdown(textRuns: TextRun[], formats: IMessageFormats): string {
+export function textRunsToMarkdown(textRuns: TextRun[], formats: MessageFormats): string {
     const markdownArray: string[] = [];
 
     for(const run of textRuns){

@@ -2,7 +2,7 @@ import { MarkdownView, Plugin } from 'obsidian';
 
 import DiscordConversation from 'src/DiscordConversation';
 import { IDiscordFormatterSettings, SettingsTab } from './settings';
-import { IMessageFormats, createFormats } from './formats';
+import { MessageFormats, createFormats } from './formats';
 
 
 const DEFAULT_SETTINGS: IDiscordFormatterSettings = {
@@ -14,7 +14,7 @@ const DEFAULT_SETTINGS: IDiscordFormatterSettings = {
 
 export default class DiscordFormatter extends Plugin {
 	settings: IDiscordFormatterSettings
-	formats: IMessageFormats
+	formats: MessageFormats
 	pasteMessageHandler: (event: ClipboardEvent) => void;
 
 	async onload() {

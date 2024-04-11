@@ -1,7 +1,7 @@
 import { EmptyMessageError, parseMessageAttachments, textRunsToMarkdown } from "./utils";
 import { CouldNotParseError } from "./utils";
 import DiscordMessageReply from "./DiscordMessageReply";
-import { IMessageFormats } from "./formats";
+import { MessageFormats } from "./formats";
 import { textRunFactory } from "./utils";
 import { IDiscordMessage } from "./IDiscordMessage";
 
@@ -163,7 +163,7 @@ export default class DiscordMessage implements IDiscordMessage {
     }    
 
     
-    public toMarkdown(formats: IMessageFormats): string {
+    public toMarkdown(formats: MessageFormats): string {
         const markdownArray: string[] = [];
 
         // Nickname, time, reply

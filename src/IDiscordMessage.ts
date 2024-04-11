@@ -1,5 +1,5 @@
 import DiscordMessageReply from "./DiscordMessageReply";
-import { IMessageFormats } from "./formats";
+import { MessageFormats } from "./formats";
 
 
 export type TextRun = {
@@ -38,6 +38,6 @@ export interface IDiscordMessage {
         reply?: DiscordMessageReply; // not every message is a reply to another message
     };
 
-    toMarkdown(formats: IMessageFormats): string;
+    toMarkdown(formats: MessageFormats): string;
 }
 
