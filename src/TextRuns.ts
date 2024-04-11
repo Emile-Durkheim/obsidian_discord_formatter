@@ -24,15 +24,12 @@ export function textRunFactory(elem: Element): TextRun {
     
     
     // Check if message has text; parse it along with its format
-    let textContent = elem.textContent;
+    const textContent = elem.textContent;
+    console.log("Factory textContent: ", textContent);
     if(!textContent){
         // May happen when system message is displayed
         throw new EmptyMessageError("parseMessageText: Message run contains neither text content nor emoji")
     }
-
-    // If there's a newline in the message, start the next line in a new quote
-    textContent = textContent.replace("\n", "\n>");
-
 
     // Check the the type of a node to determine what kind of formatting the text has.
     switch(elem.nodeName){
@@ -118,7 +115,17 @@ class TextRunStrikethrough extends TextRun{
 
 class TextRunQuote extends TextRun{
     public toMarkdown(settings: IDiscordFormatterSettings): string {
-        return `>${this.content}`;
+        // ReplaceAll ensures that quote continuing on next line stays within quoted display;
+        // i.e. that quote like this
+        // >first line\nsecond line\n
+        // is displayed as
+        // >first line\n>second line\n>
+        //
+        // slice ensures that next line following the quote is *not* double-indented, i.e. that
+        // it looks like:
+        // >first line\n>second line\n
+
+        return `>${this.content.replaceAll('\n', '\n>').slice(0, -1)}`;
     }
 }
 

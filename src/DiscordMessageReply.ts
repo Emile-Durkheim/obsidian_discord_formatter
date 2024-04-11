@@ -72,8 +72,8 @@ export default class DiscordMessageReply implements IDiscordMessage {
         }
 
         // If there's a newline, ensure new line is still shown as a nested quote
-        const replyMarkdown = markdownArray.join('').replace('\n>', '\n>>');
+        const replyTextMarkdown = markdownArray.join('').replaceAll('\n', '\n>>');
         
-        return replyMarkdown;
+        return `>**${this.header.nickname}:** ${replyTextMarkdown}`;
     }
 }

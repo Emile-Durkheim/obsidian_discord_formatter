@@ -183,9 +183,20 @@ export default class DiscordMessage implements IDiscordMessage {
 
         // Text
         if(this.content.textRuns){
-            const textMarkdownArray: string[] = []
+            const textMarkdownArray: string[] = [];
+
             for(const textRun of this.content.textRuns){
-                textMarkdownArray.push(textRun.toMarkdown(settings))
+                console.log("TextRun: ", textRun);
+
+                let textRunMarkdown = textRun.toMarkdown(settings);
+
+                // Replace newlines so that, even if newline in text message,
+                // message is still displayed in a quote in Obsidian
+                textRunMarkdown = textRunMarkdown.replaceAll(
+                    '\n', '\n>'
+                );
+
+                textMarkdownArray.push(textRunMarkdown);
             }    
 
             markdownArray.push(textMarkdownArray.join(''));
