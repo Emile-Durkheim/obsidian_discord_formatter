@@ -1,7 +1,11 @@
-import DiscordMessage from "./DiscordMessage";
+import DiscordMultiMessage from "./DiscordMultiMessage";
 
 
-export default class DiscordSingleMessage extends DiscordMessage {
+/** 
+ * For the types of messages that are just one singular Discord message, preceded and followed by other people's messages.
+ * These are served in an HTML format that's different from multi messages.
+ */
+export default class DiscordSingleMessage extends DiscordMultiMessage {
     constructor(messageDiv: Element){
         super(messageDiv);   
     }

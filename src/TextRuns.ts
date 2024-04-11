@@ -27,7 +27,7 @@ export function textRunFactory(elem: Element): TextRun {
     const textContent = elem.textContent;
     if(!textContent){
         // May happen when system message is displayed
-        throw new EmptyMessageError("parseMessageText: Message run contains neither text content nor emoji")
+        throw new EmptyMessageError("textRunFactory: Message run contains neither text content nor emoji; probably a system message?")
     }
 
     // Check the the type of a node to determine what kind of formatting the text has.
@@ -57,7 +57,6 @@ export function textRunFactory(elem: Element): TextRun {
         default: {
             // Quote; uses a generic <span> tag and is instead identified by its class name.
             // Appears as class="blockquote-2AkdDH" the last six alphanums being random, 
-            // hence why we do a regex on the full class name.
             if(elem.className.contains("blockquote")){
                 return new TextRunQuote(textContent);
 
@@ -75,13 +74,14 @@ export function textRunFactory(elem: Element): TextRun {
 
 
 
+
 export abstract class TextRun{
     constructor(protected content: string){}
     
     public abstract toMarkdown(
-        settings: IDiscordFormatterSettings, 
-        // Some Textruns need to emit different markdown when they're shown as part of a reply
-        isReply?: boolean
+	settings: IDiscordFormatterSettings, 
+	// Some Textruns need to emit different markdown when they're shown as part of a reply
+	isReply?: boolean
     ): string;
 }
 
@@ -164,5 +164,3 @@ class TextRunCustomEmoji extends TextRun{
         return `*<img src='${this.content}' style='height: var(--font-text-size)'>*`;
     }
 }
-
-

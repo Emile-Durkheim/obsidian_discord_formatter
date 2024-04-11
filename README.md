@@ -13,3 +13,7 @@ The plugin relies on HTML that Discord **usually** serves when you copy a messag
 - Easy to use with just CTRL+C and CTRL+V
 - Convert all Discord markdown to Obsidian markdown (underline, bold, quotes, strikethrough, etc.)
 - Embed attachments/website in Obsidian
+
+### Contact
+
+Reach out to me via E-Mail at `emile-durkheim-git@pm.me`!
