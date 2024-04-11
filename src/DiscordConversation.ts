@@ -31,16 +31,13 @@ export default class DiscordConversation {
         // 1.) A format with some <ol class="scrollInner"><li>message...</li><li>message,,,</li></ol>
         // 2.) A format, when there's just one message, with <h3>username, time, avatar...</h3><div>message</div>
         // Format #1 can be constructed by the DiscordMessage class, format #2 by the DiscordSingleMessage class
-        //
-        // Don't kill me for this, I only noticed that the second one exists when I was already
-        // 80% done with this plugin. And that's the band-aid solution I chose to go with.
-        // If you've got suggestions for how to make this suck less, please do let me know. 
 
         const discordMessages = []
 
-        const domOfMessages: Element[] = Array.from(DOM.querySelectorAll("li"));
-        if(domOfMessages.length > 0){
-            for (const message of domOfMessages){
+        const messageElems: Element[] = Array.from(DOM.querySelectorAll("li[id^='chat-messages']"));
+        if(messageElems.length != 0) {
+
+            for (const message of messageElems){
                 try {
                     discordMessages.push(new DiscordMessage(message));
                 } catch(err) {
@@ -50,8 +47,13 @@ export default class DiscordConversation {
                         continue; // Empty li's are expected
                     }  
                 }
-            }
+            } 
+
         } else {
+            // Single messages aren't in an <li> (see above), so we just try to
+            // construct a message from the pasted dom. If it turns out the paste isn't
+            // a Discord Message at all (i.e. there's no child divs that are discord text content
+            // or pictures) the DiscordSingleMessage constructor will throw an error.
             discordMessages.push(new DiscordSingleMessage(DOM.body));
         }
 
@@ -63,19 +65,19 @@ export default class DiscordConversation {
         // Check if it's a text message
         const messageContentElem = DOM.querySelector("div[id^='message-content']");
         if(messageContentElem){
-            // div id must always be followed by 19-digit message id
-            if(!(/message-content-\d{19}/.test(messageContentElem.id))){
+            // div id will be akin to "message-content-3827338291039483728"; the number represents the 19-digit message id
+            if(!(/message-content.\d{19}/.test(messageContentElem.id))){
                 console.error("isDiscordPaste FAIL: No <div id='message-content-\\d{19}'")
                 return false;
             }
     
-            // className must be akin to "markup-eYLPri messageContent-2t3eCI"
-            if(!(/markup-[\w\d]{6}/.test(messageContentElem.className))){
-                console.error("isDiscordPaste FAIL: No <div class='markup-\\w{6}'")
+            // className will be akin to "markup_eYLPri messageContent__2t3eCI"
+            if(!(messageContentElem.className.contains("markup"))){
+                console.error("isDiscordPaste FAIL: No <div class='markup...")
                 return false;
             }
-            if(!(/messageContent-[\w\d]{6}/.test(messageContentElem.className))){
-                console.error("isDiscordPaste FAIL: No <div class='messageContent-\\w{6}'")
+            if(!(messageContentElem.className.contains("messageContent"))){
+                console.error("isDiscordPaste FAIL: No <div class='messageContent...'")
                 return false;
             }
     
