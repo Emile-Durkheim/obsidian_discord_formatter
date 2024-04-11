@@ -90,7 +90,6 @@ export default class DiscordMessageReply implements IDiscordMessage {
         for(let i=0; i < this.content.textRuns.length && !(doShortenReplies && isOverMaxCharCount); i++){
             const textRun = this.content.textRuns[i]
 
-
             if(doShortenReplies){
                 characterCount += textRun.content.length;
 
@@ -99,22 +98,21 @@ export default class DiscordMessageReply implements IDiscordMessage {
                 }
             }
             
-
             // Shorten message content
             if(doShortenReplies && isOverMaxCharCount){
                 const overflowingCharCount = characterCount - MAX_CHARS_BEFORE_SHORTEN;
                 textRun.content = textRun.content.slice(0, textRun.content.length - overflowingCharCount);
             }
             
-            
             const textRunMarkdown = textRun.toMarkdown(settings, true);
             
             // Edge case: If reply shortening is on but last run before shortening has exactly 1 character, 
             // its content is purged above, but its special markdown would still be committed (like **b** => ****)
             if(textRun.content.length !== 0){
-                markdownArray.push(textRunMarkdown);
+                break;
             }
 
+            markdownArray.push(textRunMarkdown);
 
             if(doShortenReplies && isOverMaxCharCount){
                 markdownArray.push('...');

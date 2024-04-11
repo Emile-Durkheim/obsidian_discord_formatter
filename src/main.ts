@@ -43,7 +43,6 @@ export default class DiscordFormatter extends Plugin {
 			return;
 		}
 		
-
 		const conversation = DiscordConversation.fromRawHTML(rawHTML, this.settings);
 		if(conversation.messages.length == 0){
 			return;

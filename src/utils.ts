@@ -23,8 +23,8 @@ export class EmptyMessageError extends Error {
 }
 
 
+/** Gets image URLs off a given <div id="message-accesories-..."> (which contains all images)*/
 export function parseMessageAttachments(messageAccessoryElem: Element): string[] {
-    // Element looks like <div id="message-accessories-1143322541809750056"> and contains all images
     if(messageAccessoryElem.nodeName != "DIV" || (!/message-accessories/.test(messageAccessoryElem.id))){
         throw new CouldNotParseError('messageAccessoryElem not <div id="message-accessories...">')
     }    
@@ -35,10 +35,7 @@ export function parseMessageAttachments(messageAccessoryElem: Element): string[]
 
 
 /** Runs through a <div id="message-content-...">'s children and turns them into TextRuns.
- *
- *  The children will be <strong>, <u>, <h1>... tags to denote their formatting; this allows us
- *  to push them
- */
+ * The children will be <strong>, <u>, <h1>... tags to denote their formatting; this allows us to push them.  */
 export function textRunFactory(elem: Element): TextRun {
     // Check if emojis/custom emojis; parse them
     if (elem.className.contains("emojiContainer")) {
