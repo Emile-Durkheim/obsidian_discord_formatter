@@ -12,11 +12,11 @@ Just CTRL+C from the desktop Discord client and CTRL+V into Obsidian! All the fo
 - Embed attachments/website in Obsidian
 
 ### Limitations
-The plugin relies on HTML that Discord **usually** serves when you copy a message from the Desktop Client. However, **Discord does not do this reliably**. In 10% of cases, your clipboard contains only raw text, which I can't parse as well as the HTML.
+The plugin relies on HTML that Discord **usually** serves when you copy a message from the Desktop Client. However, **Discord does not do this reliably**. In 10% of cases, your clipboard contains only raw text, which the plugin can't parse.
 
-**Fix:** Select the message in a sligthly different way. With profile picture, without profile picture; with emoji reaction, without emoji reaction... I'm not sure what causes the HTML not to be copied, but just going about the selection slightly differently will eventually do the trick
+**Fix:** Select the message in a sligthly different way; try to select the *whole* message, starting your cursor above the start of the message/row of messages and end right below the end of the last message. It should work this way. 
 
-This is my first Obsidian plugin and my first TypeScript project, so be kind. I know some portions of the code are messy and in need of refactoring.
+**Desktop only, CTRL+C only**: If you try to copy the text out of anything but the Desktop client using the CTRL+C shortcut, your clipboard will only contain raw text which the plugin cannot parse.
 
 ### Installation
 
