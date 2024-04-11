@@ -2,6 +2,8 @@
 
 import { MarkdownView, Plugin } from "obsidian";
 import DiscordConversation from "src/DiscordConversation";
+import { IDiscordFormatterSettings, SettingsTab } from 'src/settings';
+import { IMessageFormats, createFormats } from "src/formats";
 
 
 // Test
@@ -9,34 +11,39 @@ import Tests from "./tests";
 import * as fs from 'fs';
 
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface DiscordFormatterSettings {}
-
-const DEFAULT_SETTINGS: DiscordFormatterSettings = {}
-
+const DEFAULT_SETTINGS: IDiscordFormatterSettings = {
+	showEdited: true,
+	showReplies: true,
+	distinguishHeadings: false
+}
 
 export default class DiscordFormatter extends Plugin {
-	settings: DiscordFormatterSettings
+	settings: IDiscordFormatterSettings
+	formats: IMessageFormats
 	pasteMessageHandler: (event: ClipboardEvent) => void;
 	writeClipboardHandler: (event: ClipboardEvent) => void;  // Test
 
 	async onload() {
 		await this.loadSettings();
         
-        // Test
-		this.addCommand({
-			id: "run-unit-tests",
-			name: "Debug: Run Unit Tests",
-			callback: () => { Tests.run() }
-		})
+		// Settings tab
+		this.addSettingTab(new SettingsTab(this.app, this));
 
 		// Define behaviour on paste
 		this.pasteMessageHandler = this.pasteMessage.bind(this);
 		this.app.workspace.on('editor-paste', this.pasteMessageHandler);
 
+
+
 		// Test
 		this.writeClipboardHandler = this.writeClipboardToFile.bind(this);
 		this.app.workspace.on('editor-paste', this.writeClipboardHandler);
+
+		this.addCommand({
+			id: "run-unit-tests",
+			name: "Debug: Run Unit Tests",
+			callback: () => { Tests.run() }
+		})		
 	}
 
 
@@ -49,11 +56,14 @@ export default class DiscordFormatter extends Plugin {
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		this.formats = createFormats(this.settings);
 	}
 
 	async saveSettings() {
 		this.saveData(this.settings);
+		this.formats = createFormats(this.settings);
 	}
+
 
 
 	pasteMessage(event: ClipboardEvent){
@@ -66,7 +76,7 @@ export default class DiscordFormatter extends Plugin {
 		let conversation: DiscordConversation | undefined = undefined;
 		if(event.clipboardData?.getData('text/html')){
 			const rawHTML = event.clipboardData?.getData('text/html');
-			conversation = DiscordConversation.fromRawHTML(rawHTML);
+			conversation = DiscordConversation.fromRawHTML(rawHTML, this.formats);
 		} else if(event.clipboardData?.getData('text')){
 			// const rawText = event.clipboardData?.getData('text');
 			// conversation = DiscordConversation.fromRawText(rawText);

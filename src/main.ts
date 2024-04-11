@@ -1,20 +1,27 @@
 import { MarkdownView, Plugin } from 'obsidian';
 
 import DiscordConversation from 'src/DiscordConversation';
+import { IDiscordFormatterSettings, SettingsTab } from './settings';
+import { IMessageFormats, createFormats } from './formats';
 
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface DiscordFormatterSettings {}
-
-const DEFAULT_SETTINGS: DiscordFormatterSettings = {}
+const DEFAULT_SETTINGS: IDiscordFormatterSettings = {
+	showEdited: true,
+	showReplies: true,
+	distinguishHeadings: false
+}
 
 
 export default class DiscordFormatter extends Plugin {
-	settings: DiscordFormatterSettings
+	settings: IDiscordFormatterSettings
+	formats: IMessageFormats
 	pasteMessageHandler: (event: ClipboardEvent) => void;
 
 	async onload() {
 		await this.loadSettings();
+
+		// Settings tab
+		this.addSettingTab(new SettingsTab(this.app, this));
 		
 		// Define behaviour on paste
 		this.pasteMessageHandler = this.pasteMessage.bind(this);
@@ -29,10 +36,12 @@ export default class DiscordFormatter extends Plugin {
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		this.formats = createFormats(this.settings);
 	}
 
 	async saveSettings() {
 		this.saveData(this.settings);
+		this.formats = createFormats(this.settings);
 	}
 
 
@@ -40,11 +49,13 @@ export default class DiscordFormatter extends Plugin {
 		const rawHTML = event.clipboardData?.getData('text/html');
 		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 
+		// Return if no html in clipboard or no editor open => if no Discord message to paste
 		if(!(rawHTML && view?.editor)){
 			return;
 		}
 		
-		const conversation = DiscordConversation.fromRawHTML(rawHTML);
+
+		const conversation = DiscordConversation.fromRawHTML(rawHTML, this.formats);
 		if(conversation.messages.length == 0){
 			return;
 		}
