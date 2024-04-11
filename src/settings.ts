@@ -40,19 +40,7 @@ export class SettingsTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       })
-
-    new Setting(containerElement)
-      .setName("Show replies")
-      .setDesc("If the message you're copying is a reply to another message, also copy the message it's a reply to.")
-      .addToggle((toggle) => {
-        toggle
-            .setValue(this.plugin.settings.showReplies)
-            .onChange(async (value) => {
-                this.plugin.settings.showReplies = value;
-                await this.plugin.saveSettings();
-            })
-      })
-
+      
     new Setting(containerElement)
       .setName("Show (edited) tag")
       .setDesc("How to copy the *(edited)* tag at the end of an edited message.")
@@ -66,6 +54,18 @@ export class SettingsTab extends PluginSettingTab {
               this.plugin.settings.showEdited = value;
               await this.plugin.saveSettings();
           })
+      })
+
+    new Setting(containerElement)
+      .setName("Show replies")
+      .setDesc("If the message you're copying is a reply to another message, also copy the message it's a reply to.")
+      .addToggle((toggle) => {
+        toggle
+            .setValue(this.plugin.settings.showReplies)
+            .onChange(async (value) => {
+                this.plugin.settings.showReplies = value;
+                await this.plugin.saveSettings();
+            })
       })
   }
 }
