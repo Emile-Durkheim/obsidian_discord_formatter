@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 
-import { SETTINGS } from 'main';
+import DiscordFormatter from 'main';
 
 
 export function writeDocumentToFile(doc: Document): void {
@@ -34,7 +34,7 @@ export function writeStringToFile(str: string | undefined){
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function log(...params: any[]): void{
-	if(SETTINGS.debug){
+	if(DiscordFormatter.settings.debug){
         console.log(...params);
 	}
 }
