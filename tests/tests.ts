@@ -7,7 +7,7 @@ const DIR = "your/dir/here/"
 
 import * as fs from 'fs';
 
-import DiscordConversation from "../src/DiscordConversation";
+import Conversation from "../src/Conversation";
 import { DEFAULT_SETTINGS, IDiscordFormatterSettings } from 'src/settings';
 
 
@@ -75,7 +75,7 @@ class Tests {
                     return;
                 }
                 
-                const conversation = DiscordConversation.fromRawHTML(data, settings);
+                const conversation = Conversation.fromRawHTML(data, settings);
 
                 assertEqual(conversation.toMarkdown(settings), markdown, "DiscordConversation.toMarkdown() equality: " + fileName)
             });

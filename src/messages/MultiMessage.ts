@@ -1,40 +1,18 @@
-
 import { DateTime } from "luxon";
 
-import { EmptyMessageError, parseMessageAttachments, CouldNotParseError } from "./utils";
-import { TextRun } from "./TextRuns";
-import { textRunFactory } from "./utils";
-import DiscordMessageReply from "./DiscordMessageReply";
-import { IDiscordFormatterSettings } from "./settings";
-
-
-export interface IDiscordMessage {
-    // content will exist on a message, but there might both be only attachments and
-    // no text on a message, or only text but not attachments
-    content: {
-        textRuns?: TextRun[];
-        attachments?: string[]; // contains URL to attachment(s)
-    };
-
-    // might not be present if user selected only the message text for copy,
-    // or if user copied header only partially (i.e. only copied half of the timestamp)
-    header?: {
-        nickname: string;
-        timeExact?: number; // unix timestamp in milliseconds
-        timeRelative?: string;
-        avatar?: string; // url
-        reply?: DiscordMessageReply; // not every message is a reply to another message
-    };
-
-    toMarkdown(settings: IDiscordFormatterSettings): string;
-}
+import { EmptyMessageError, parseMessageAttachments, CouldNotParseError } from "../utils";
+import { TextRun } from "../TextRuns";
+import { textRunFactory } from "../utils";
+import ReplyMessage from "./ReplyMessage";
+import { IDiscordFormatterSettings } from "../settings";
+import { IDiscordMessage } from "./IDiscordMessage";
 
 
 /**
  * For messages that consist of multiple Discord messages sent one after the other, but appearing as one.
  * These are served in an HTML format that's different from single messages, so the parsing works differently.
  */
-export default class DiscordMultiMessage implements IDiscordMessage {
+export default class MultiMessage implements IDiscordMessage {
 
     // Properties as per interface
     content: {
@@ -47,7 +25,7 @@ export default class DiscordMultiMessage implements IDiscordMessage {
         timeExact: number,
         timeRelative: string,
         avatar?: string,
-        reply?: DiscordMessageReply
+        reply?: ReplyMessage
     }        
     
     
@@ -75,7 +53,7 @@ export default class DiscordMultiMessage implements IDiscordMessage {
     }        
 
 
-    protected constructMessageHeader(MESSAGE_LI: Element): DiscordMultiMessage["header"] {
+    protected constructMessageHeader(MESSAGE_LI: Element): MultiMessage["header"] {
         const headerDiv = MESSAGE_LI.querySelector("h3[class^='header']");
         if(!headerDiv){
             throw new CouldNotParseError(`No <h3 class='header...'> found`);
@@ -117,12 +95,12 @@ export default class DiscordMultiMessage implements IDiscordMessage {
         const messageReplyDiv = MESSAGE_LI.querySelector("div[id^='message-reply'");
         let messageReply = undefined;
         if(messageReplyDiv){
-            messageReply = new DiscordMessageReply(messageReplyDiv);
+            messageReply = new ReplyMessage(messageReplyDiv);
         }        
         
 
         // --- Construct header ---
-        const header: DiscordMultiMessage["header"] = {
+        const header: MultiMessage["header"] = {
             nickname: nickname,
             timeExact: Date.parse(timeExact),
             timeRelative: timeRelative
@@ -134,7 +112,7 @@ export default class DiscordMultiMessage implements IDiscordMessage {
     }        
 
 
-    protected constructMessageContent(MESSAGE_LI: Element): DiscordMultiMessage["content"] {
+    protected constructMessageContent(MESSAGE_LI: Element): MultiMessage["content"] {
         const messageTextElems = this.getMessageTextElems(MESSAGE_LI);
         const messageAttachmentElem = MESSAGE_LI.querySelector("div[id^='message-accessories']");
         
@@ -144,7 +122,7 @@ export default class DiscordMultiMessage implements IDiscordMessage {
         }        
         
         
-        const content: DiscordMultiMessage["content"] = {};
+        const content: MultiMessage["content"] = {};
 
         // Fill text runs
         if(messageTextElems){

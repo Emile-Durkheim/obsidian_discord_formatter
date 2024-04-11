@@ -1,8 +1,8 @@
-import { IDiscordMessage } from "./DiscordMultiMessage"
-import { EmptyMessageError, CouldNotParseError } from "./utils"
-import { TextRun } from "./TextRuns"
-import { textRunFactory } from "./utils"
-import { IDiscordFormatterSettings } from "./settings"
+import { IDiscordMessage } from "./IDiscordMessage"
+import { EmptyMessageError, CouldNotParseError } from "../utils"
+import { TextRun } from "../TextRuns"
+import { textRunFactory } from "../utils"
+import { IDiscordFormatterSettings } from "../settings"
 
 
 const MAX_CHARS_BEFORE_SHORTEN = 70;
@@ -11,7 +11,7 @@ const MAX_CHARS_BEFORE_SHORTEN = 70;
 /**
  * The attached message that a given Discord message is replying to. (May or may not exist on a DiscordMessage)
  */
-export default class DiscordMessageReply implements IDiscordMessage {
+export default class ReplyMessage implements IDiscordMessage {
     content: {
         textRuns: TextRun[]
     }
@@ -34,7 +34,7 @@ export default class DiscordMessageReply implements IDiscordMessage {
     }
 
 
-    protected constructMessageContent(replyDiv: Element): DiscordMessageReply["content"] {
+    protected constructMessageContent(replyDiv: Element): ReplyMessage["content"] {
         const messageContentElems = this.getMessageTextElems(replyDiv)
 
         // Fill text runs
@@ -69,7 +69,7 @@ export default class DiscordMessageReply implements IDiscordMessage {
     }
 
 
-    protected constructMessageHeader(replyDiv: Element): DiscordMessageReply["header"] {
+    protected constructMessageHeader(replyDiv: Element): ReplyMessage["header"] {
         const nickname = replyDiv.querySelector("span[class^='username']")?.textContent;
         if(!nickname){
             console.error(replyDiv);

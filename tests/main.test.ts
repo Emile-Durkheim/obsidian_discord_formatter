@@ -1,7 +1,7 @@
 // This file is duplicated code from main.ts; not the ideal solution I'm aware
 
 import { MarkdownView, Plugin } from "obsidian";
-import DiscordConversation from "src/DiscordConversation";
+import DiscordConversation from "src/Conversation";
 import { IDiscordFormatterSettings, SettingsTab, DEFAULT_SETTINGS } from 'src/settings';
 
 

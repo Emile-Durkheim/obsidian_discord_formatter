@@ -1,6 +1,6 @@
 import { MarkdownView, Plugin } from 'obsidian';
 
-import DiscordConversation from 'src/DiscordConversation';
+import DiscordConversation from 'src/Conversation';
 import { IDiscordFormatterSettings, SettingsTab, DEFAULT_SETTINGS } from './settings';
 
 

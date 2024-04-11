@@ -1,12 +1,13 @@
-import DiscordMultiMessage from "./DiscordMultiMessage";
-import DiscordSingleMessage from "./DiscordSingleMessage";
+import MultiMessage from "./messages/MultiMessage";
+import { IDiscordMessage } from "./messages/IDiscordMessage";
+import SingleMessage from "./messages/SingleMessage";
 import { IDiscordFormatterSettings } from "./settings";
 import { EmptyMessageError } from "./utils";
 import { CouldNotParseError } from "./utils";
 
 
-export default class DiscordConversation {
-    messages: DiscordMultiMessage[];
+export default class Conversation {
+    messages: IDiscordMessage[];
 
     
     constructor(DOM: Document, settings: IDiscordFormatterSettings){
@@ -26,7 +27,7 @@ export default class DiscordConversation {
     }
 
 
-    private createMessages(DOM: Document, settings: IDiscordFormatterSettings): DiscordMultiMessage[] {
+    private createMessages(DOM: Document, settings: IDiscordFormatterSettings): IDiscordMessage[] {
         // Factory for Discord messages, as the HTML we get comes in different formats; 
         // 1.) A format with some <ol class="scrollInner"><li>message...</li><li>message,,,</li></ol>
         // 2.) A format, when there's just one message, with <h3>username, time, avatar...</h3><div>message</div>
@@ -39,7 +40,7 @@ export default class DiscordConversation {
 
             for (const message of messageElems){
                 try {
-                    discordMessages.push(new DiscordMultiMessage(message));
+                    discordMessages.push(new MultiMessage(message));
                 } catch(err) {
                     if(!(err instanceof EmptyMessageError)){
                         throw err;
@@ -54,7 +55,7 @@ export default class DiscordConversation {
             // construct a message from the pasted dom. If it turns out the paste isn't
             // a Discord Message at all (i.e. there's no child divs that are discord text content
             // or pictures) the DiscordSingleMessage constructor will throw an error.
-            discordMessages.push(new DiscordSingleMessage(DOM.body));
+            discordMessages.push(new SingleMessage(DOM.body));
         }
 
         return discordMessages;
