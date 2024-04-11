@@ -2,19 +2,13 @@
 
 import { MarkdownView, Plugin } from "obsidian";
 import DiscordConversation from "src/DiscordConversation";
-import { IDiscordFormatterSettings, SettingsTab } from 'src/settings';
+import { IDiscordFormatterSettings, SettingsTab, DEFAULT_SETTINGS } from 'src/settings';
 
 
 // Test
 import Tests from "./tests";
 import * as fs from 'fs';
 
-
-const DEFAULT_SETTINGS: IDiscordFormatterSettings = {
-	showEdited: true,
-	showReplies: true,
-	distinguishHeadings: false
-}
 
 export default class DiscordFormatter extends Plugin {
 	settings: IDiscordFormatterSettings
