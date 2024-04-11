@@ -1,0 +1,2 @@
+# Excluding all .html files from the Repo's Language Stats, so it actually shows up as a TypeScript repo.
+tests/*.html linguist-vendored
