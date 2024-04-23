@@ -98,7 +98,7 @@ export default class MultiMessage implements IDiscordMessage {
         
 
         if(!messageTextElems && !messageAttachmentElem){
-            throw new EmptyMessageError(`Message contains neither text content nor attachments`);
+            throw new EmptyMessageError(`HTML of message that was trying to be parsed contains no content; neither text nor attachments.`);
         }        
         
         
