@@ -10,24 +10,24 @@ export default class Conversation {
     messages: IDiscordMessage[];
 
     
-    constructor(DOM: Document, settings: IDiscordFormatterSettings){
+    constructor(DOM: Document){
         if(!this.isDiscordPaste(DOM)){
             throw new CouldNotParseError("Paste doesn't appear to be from Discord")
         }
 
-        this.messages = this.createMessages(DOM, settings);
+        this.messages = this.createMessages(DOM);
     }
     
 
-    static fromRawHTML(HTML: string, settings: IDiscordFormatterSettings){
+    static fromRawHTML(HTML: string){
         const parser = new DOMParser();
         const DOM: Document = parser.parseFromString(HTML, 'text/html');
     
-        return new this(DOM, settings);
+        return new this(DOM);
     }
 
 
-    private createMessages(DOM: Document, settings: IDiscordFormatterSettings): IDiscordMessage[] {
+    private createMessages(DOM: Document): IDiscordMessage[] {
         // Factory for Discord messages, as the HTML we get comes in different formats; 
         // 1.) A format with some <ol class="scrollInner"><li>message...</li><li>message,,,</li></ol>
         // 2.) A format, when there's just one message, with <h3>username, time, avatar...</h3><div>message</div>
