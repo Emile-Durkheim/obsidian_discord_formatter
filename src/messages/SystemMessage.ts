@@ -1,7 +1,7 @@
 import { TextRun, TextRunDefault } from "src/TextRuns";
 import { IDiscordMessage } from "./IDiscordMessage";
 import { IDiscordFormatterSettings } from "src/settings";
-import { EmptyMessageError } from "src/utils";
+import { EmptyMessageError, formatMessageDate } from "src/utils";
 import { DateTime } from "luxon";
 
 
@@ -46,6 +46,6 @@ export default class SystemMessage implements IDiscordMessage {
     
     toMarkdown(settings: IDiscordFormatterSettings): string {
         const date = DateTime.fromMillis(this.header.timestamp);
-        return `>**System - ${date.toFormat(settings.dateFormat)}**\n>${this.content.textRuns[0].toMarkdown(settings)}`
+        return `>**System${formatMessageDate(date, settings)}**\n>${this.content.textRuns[0].toMarkdown(settings)}`
     }
 }

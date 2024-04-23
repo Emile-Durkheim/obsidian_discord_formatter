@@ -1,17 +1,15 @@
 import { DateTime } from "luxon";
 
-import { EmptyMessageError, parseMessageAttachments, CouldNotParseError } from "../utils";
+import { EmptyMessageError, parseMessageAttachments, CouldNotParseError, formatMessageDate } from "../utils";
 import { TextRun } from "../TextRuns";
-import { textRunFactory } from "../utils";
+import { textRunFactory } from "src/TextRuns";
 import ReplyMessage from "./ReplyMessage";
 import { IDiscordFormatterSettings } from "../settings";
 import { IDiscordMessage } from "./IDiscordMessage";
 
 
-/**
- * For messages that consist of multiple Discord messages sent one after the other, but appearing as one.
- * These are served in an HTML format that's different from single messages, so the parsing works differently.
- */
+/** For messages that consist of multiple Discord messages sent one after the other, but appearing as one.
+ * These are served in an HTML format that's different from single messages, so the parsing works differently. */
 export default class MultiMessage implements IDiscordMessage {
 
     // Properties as per interface
@@ -141,7 +139,7 @@ export default class MultiMessage implements IDiscordMessage {
             const date = DateTime.fromMillis(this.header.timestamp);
             
             markdownArray.push(
-                `**${this.header.nickname} - ${date.toFormat(settings.dateFormat)}**`
+                `**${this.header.nickname}${formatMessageDate(date, settings)}**`
             )        
 
             if(this.header.reply && settings.showReplies){

@@ -1,7 +1,7 @@
 import { IDiscordMessage } from "./IDiscordMessage"
 import { EmptyMessageError, CouldNotParseError } from "../utils"
 import { TextRun } from "../TextRuns"
-import { textRunFactory } from "../utils"
+import { textRunFactory } from "src/TextRuns"
 import { IDiscordFormatterSettings } from "../settings"
 
 
