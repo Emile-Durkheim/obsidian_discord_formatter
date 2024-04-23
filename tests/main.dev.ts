@@ -1,83 +1,32 @@
-// This file is duplicated code from main.ts; not the ideal solution I'm aware
-
-import { MarkdownView, Plugin } from "obsidian";
-import DiscordConversation from "src/Conversation";
-import { IDiscordFormatterSettings, SettingsTab, DEFAULT_SETTINGS } from 'src/settings';
-
-
-// Test
-import Tests from "./tests";
 import * as fs from 'fs';
+import DiscordFormatter from "src/main";
 
 
-export default class DiscordFormatter extends Plugin {
-	settings: IDiscordFormatterSettings
-	pasteMessageHandler: (event: ClipboardEvent) => void;
-	writeClipboardHandler: (event: ClipboardEvent) => void;  // Test
+const TARGET_DIR = "~";  // must NOT have trailing slash
+
+
+/** Extension of default plugin that saves all pasted HTML to a file */
+export default class DiscordFormatterDev extends DiscordFormatter {
+	writeClipboardHandler: (event: ClipboardEvent) => void;
 
 	async onload() {
-		await this.loadSettings();
-        
-		// Settings tab
-		this.addSettingTab(new SettingsTab(this.app, this));
+		this.init();
 
-		// Define behaviour on paste
-		this.pasteMessageHandler = this.pasteMessage.bind(this);
-		this.app.workspace.on('editor-paste', this.pasteMessageHandler);
-
-
-
-		// Test
+		// Dev setup => Pasted Discord Message gets written to directory of choice
 		this.writeClipboardHandler = this.writeClipboardToFile.bind(this);
 		this.app.workspace.on('editor-paste', this.writeClipboardHandler);
-
-		this.addCommand({
-			id: "run-unit-tests",
-			name: "Debug: Run Unit Tests",
-			callback: () => { Tests.run(this.settings) }
-		})		
 	}
 
 
 	onunload() {
 		this.app.workspace.off('editor-paste', this.pasteMessageHandler);
 
-		this.app.workspace.off('editor-paste', this.writeClipboardHandler);  // Test
-	}
-
-
-	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-	}
-
-	async saveSettings() {
-		this.saveData(this.settings);
-	}
-
-
-
-	pasteMessage(event: ClipboardEvent){
-		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-		if(!view?.editor){
-			return;
-		}
-		
-		
-		let conversation: DiscordConversation | undefined = undefined;
-		if(event.clipboardData?.getData('text/html')){
-			const rawHTML = event.clipboardData?.getData('text/html');
-			conversation = DiscordConversation.fromRawHTML(rawHTML, this.settings);
-		}
-
-		if(conversation && conversation?.messages.length > 0){
-			event.preventDefault();
-			view.editor.replaceSelection(conversation.toMarkdown(this.settings));
-		}
+		// Dev setup
+		this.app.workspace.off('editor-paste', this.writeClipboardHandler);
 	}
 
 
 	private writeClipboardToFile(event: ClipboardEvent){
-		// Test func
 		let string = event.clipboardData?.getData('text/html');
 	
 		if(!string){
@@ -89,10 +38,10 @@ export default class DiscordFormatter extends Plugin {
 		}
 		
 		// Save document to a file
-		for(let i=0; i < 30; i++){
-			if(!fs.existsSync(`${i}.html`)){
-				console.log(`Wrote to ~/${i}.html`)
-				fs.writeFile(`${i}.html`, string, () => {});
+		for(let i=0; i < 100; i++){
+			if(!fs.existsSync(`${TARGET_DIR}/${i}.html`)){
+				console.log(`Wrote to ${TARGET_DIR}/${i}.html`)
+				fs.writeFile(`${TARGET_DIR}/${i}.html`, string, () => {});
 				return;
 			}
 		}

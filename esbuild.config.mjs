@@ -10,11 +10,11 @@ if you want to view the source, please visit the github repository of this plugi
 `;
 
 const prod = (process.argv[2] === "production");
-const test = (process.argv[2] === "test");
+const dev = (process.argv[2] === "dev");
 
 let entryPoint = "src/main.ts";
-if (test) {
-	entryPoint = "tests/main.test.ts";
+if (dev) {
+	entryPoint = "tests/main.dev.ts";
 }
 
 const context = await esbuild.context({

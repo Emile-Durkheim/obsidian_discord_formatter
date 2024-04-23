@@ -9,6 +9,10 @@ export default class DiscordFormatter extends Plugin {
 	pasteMessageHandler: (event: ClipboardEvent) => void;
 
 	async onload() {
+		this.init();
+	}
+
+	async init() {
 		await this.loadSettings();
 
 		// Settings tab
