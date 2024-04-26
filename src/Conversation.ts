@@ -70,11 +70,11 @@ export default class Conversation {
             }
     
             // className will be akin to "markup_eYLPri messageContent__2t3eCI"
-            if(!(messageContentElem.className.contains("markup"))){
+            if(!(/markup/.test(messageContentElem.className))){
                 console.error("isDiscordPaste FAIL: No <div class='markup...")
                 return false;
             }
-            if(!(messageContentElem.className.contains("messageContent"))){
+            if(!(/messageContent/.test(messageContentElem.className))){
                 console.error("isDiscordPaste FAIL: No <div class='messageContent...'")
                 return false;
             }

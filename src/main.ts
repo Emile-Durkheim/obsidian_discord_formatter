@@ -1,7 +1,9 @@
 import { MarkdownView, Plugin } from 'obsidian';
 
-import DiscordConversation from 'src/Conversation';
-import { IDiscordFormatterSettings, SettingsTab, DEFAULT_SETTINGS } from './settings';
+import DiscordConversation from './Conversation';
+import { SettingsTab } from './SettingsTab';
+import { DEFAULT_SETTINGS } from "./settings";
+import { IDiscordFormatterSettings } from "./settings";
 
 
 export default class DiscordFormatter extends Plugin {

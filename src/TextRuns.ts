@@ -108,7 +108,7 @@ export class TextRunCustomEmoji extends TextRun{
  * The children will be <strong>, <u>, <h1>... tags to denote their formatting; this allows us to push them.  */
 export function textRunFactory(elem: Element): TextRun {
     // Check if emojis/custom emojis; parse them
-    if (elem.className.contains("emojiContainer")) {
+    if (/emojiContainer/.test(elem.className)) {
         const imgElem = elem.children[0] as HTMLImageElement;
         if (!imgElem) {
             throw new CouldNotParseError("parseMessageText: No img element found in span.emojiContainer");
@@ -156,11 +156,11 @@ export function textRunFactory(elem: Element): TextRun {
         default: {
             // Quote; uses a generic <span> tag and is instead identified by its class name.
             // Appears as class="blockquote-2AkdDH" the last six alphanums being random, 
-            if (elem.className.contains("blockquote")) {
+            if (/blockquote/.test(elem.className)) {
                 return new TextRunQuote(textContent);
 
                 // Same as above, class="timestamp-p1Df1m"; content becomes datetime string of time tag in children
-            } else if (elem.className.contains("timestamp") && elem?.firstElementChild?.nodeName == "TIME") {
+            } else if (/timestamp/.test(elem.className) && elem?.firstElementChild?.nodeName == "TIME") {
                 const timestamp = DateTime.fromISO(elem?.firstElementChild?.getAttribute('datetime') as string);
 
                 if (timestamp) {

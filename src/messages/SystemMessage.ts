@@ -1,7 +1,7 @@
-import { TextRun, TextRunDefault } from "src/TextRuns";
+import { TextRun, TextRunDefault } from "../TextRuns";
 import { IDiscordMessage } from "./IDiscordMessage";
-import { IDiscordFormatterSettings } from "src/settings";
-import { EmptyMessageError, formatMessageDate } from "src/utils";
+import { IDiscordFormatterSettings } from "../settings";
+import { EmptyMessageError, formatMessageDate } from "../utils";
 import { DateTime } from "luxon";
 
 

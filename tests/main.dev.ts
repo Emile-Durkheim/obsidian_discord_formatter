@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import DiscordFormatter from "src/main";
 
 
-const TARGET_DIR = "~";  // must NOT have trailing slash
+const TARGET_DIR = "";  // Path that pasted HTML should be saved to; MUST have a trailing slash
 
 
 /** Extension of default plugin that saves all pasted HTML to a file */
@@ -39,9 +39,10 @@ export default class DiscordFormatterDev extends DiscordFormatter {
 		
 		// Save document to a file
 		for(let i=0; i < 100; i++){
-			if(!fs.existsSync(`${TARGET_DIR}/${i}.html`)){
-				console.log(`Wrote to ${TARGET_DIR}/${i}.html`)
-				fs.writeFile(`${TARGET_DIR}/${i}.html`, string, () => {});
+			const path = `${TARGET_DIR}${i}.html`;
+			if(!fs.existsSync(path)){
+				fs.writeFile(path, string, () => {});
+				console.log(`Wrote to ${path}`)
 				return;
 			}
 		}
