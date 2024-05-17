@@ -31,6 +31,7 @@ export default class DiscordFormatter extends Plugin {
 
 	onunload() {
 		this.app.workspace.off('editor-paste', this.pasteMessageHandler)
+		this.app.workspace.off('editor-drop', this.dragStartHandler)
 	}
 
 
