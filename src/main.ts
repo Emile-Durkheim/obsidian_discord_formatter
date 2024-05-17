@@ -8,8 +8,7 @@ import { IDiscordFormatterSettings } from "./settings";
 
 export default class DiscordFormatter extends Plugin {
 	settings: IDiscordFormatterSettings
-	pasteMessageHandler: (event: ClipboardEvent) => void;
-	dragStartHandler: (event: DragEvent) => void;
+	pasteMessageHandler: (event: ClipboardEvent | DragEvent) => void;
 
 	async onload() {
 		this.init();
@@ -23,15 +22,14 @@ export default class DiscordFormatter extends Plugin {
 
 		// Define behaviour on paste
 		this.pasteMessageHandler = this.pasteMessage.bind(this);
-		this.dragStartHandler = this.dragStart.bind(this);
 		this.app.workspace.on('editor-paste', this.pasteMessageHandler)
-		this.app.workspace.on('editor-drop', this.dragStartHandler)
+		this.app.workspace.on('editor-drop', this.pasteMessageHandler)
 	}
 
 
 	onunload() {
 		this.app.workspace.off('editor-paste', this.pasteMessageHandler)
-		this.app.workspace.off('editor-drop', this.dragStartHandler)
+		this.app.workspace.off('editor-drop', this.pasteMessageHandler)
 	}
 
 
@@ -43,27 +41,14 @@ export default class DiscordFormatter extends Plugin {
 		this.saveData(this.settings);
 	}
 
-	dragStart(event: DragEvent){
-		const rawHTML = event.dataTransfer?.getData('text/html');
-		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-
-		// Return if no html in clipboard or no editor open => if no Discord message to paste
-		if(!(rawHTML && view?.editor)){
-			return;
+	pasteMessage(event: ClipboardEvent | DragEvent){
+		let rawHTML = undefined;
+		if(event instanceof ClipboardEvent){
+			rawHTML = event.clipboardData?.getData('text/html');
+		} else if(event instanceof DragEvent){
+			rawHTML = event.dataTransfer?.getData('text/html');
 		}
 
-		const conversation = DiscordConversation.fromRawHTML(rawHTML);
-		if(conversation.messages.length == 0){
-			return;
-		}
-
-		event.preventDefault();
-		view.editor.replaceSelection(conversation.toMarkdown(this.settings));
-
-	}
-
-	pasteMessage(event: ClipboardEvent){
-		const rawHTML = event.clipboardData?.getData('text/html');
 		const view = this.app.workspace.getActiveViewOfType(MarkdownView);
 
 		// Return if no html in clipboard or no editor open => if no Discord message to paste
