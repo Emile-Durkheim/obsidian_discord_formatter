@@ -2,7 +2,7 @@ import MultiMessage from "./messages/MultiMessage";
 import { IDiscordMessage } from "./messages/IDiscordMessage";
 import SingleMessage from "./messages/SingleMessage";
 import { IDiscordFormatterSettings } from "./settings";
-import { CouldNotParseError } from "./utils";
+import { CouldNotParseError, EmptyMessageError } from "./utils";
 import SystemMessage from "./messages/SystemMessage";
 
 
@@ -32,27 +32,40 @@ export default class Conversation {
         // 1.) A format with some <ol class="scrollInner"><li>message...</li><li>message,,,</li></ol>
         // 2.) A format, when there's just one message, with <h3>username, time, avatar...</h3><div>message</div>
         // Format #1 can be constructed by the DiscordMultiMessage and SystemMessage classes, format #2 by the DiscordSingleMessage class
-
+        
         const discordMessages = []
-
+        
         const messageElems: Element[] = Array.from(DOM.querySelectorAll("li[id^='chat-messages']"));
-        if(messageElems.length != 0) {
 
-            for (const message of messageElems){
-                if(message.firstElementChild?.className.includes("systemMessage") || message.firstElementChild?.className.includes("system_message")) {
-                    discordMessages.push(new SystemMessage(message));
-                } else if(message.firstElementChild?.innerHTML) {
-                    discordMessages.push(new MultiMessage(message));
-                } else {
-                    continue;  // empty <li>'s are expected, they're served when the container HTML of a message is copied but not any of its content
-                }
-            }
-        } else {
+        if(messageElems.length == 0) {
             // Single messages aren't in an <li> (see above), so we just try to
             // construct a message from the pasted dom. If it turns out the paste isn't
             // a Discord Message at all (i.e. there's no child divs that are discord text content
             // or pictures) the DiscordSingleMessage constructor will throw an error.
             discordMessages.push(new SingleMessage(DOM.body));
+            return discordMessages;
+        }
+
+        for (const message of messageElems){
+            try {
+
+                if(message.firstElementChild?.className.includes("systemMessage") || message.firstElementChild?.className.includes("system_message")) {
+                    discordMessages.push(new SystemMessage(message));
+                } else if(message.firstElementChild?.innerHTML) {
+                    discordMessages.push(new MultiMessage(message));
+                } else {
+                    throw new EmptyMessageError("No child divs in chat-messages li");
+                }
+
+            } catch(e) {
+                if(e instanceof EmptyMessageError){
+                    // Messages with incomplete content are expected, they're served when the container HTML of a message is copied but not its content
+                    console.error(e, message);
+                    continue;
+                } else {
+                    throw e;
+                }
+            }
         }
 
         return discordMessages;

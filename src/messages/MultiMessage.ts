@@ -94,7 +94,7 @@ export default class MultiMessage implements IDiscordMessage {
 
     protected constructMessageContent(messageLi: Element): MultiMessage["content"] {
         const messageTextElems = this.getMessageTextElems(messageLi);
-        const messageAttachmentElem = messageLi.querySelector("div[id^='message-accessories']");
+        const messageAttachmentElem = messageLi.querySelector("div[id^='message-accessories'] > :not(div[id^='message-reactions'])");
         
 
         if(!messageTextElems && !messageAttachmentElem){

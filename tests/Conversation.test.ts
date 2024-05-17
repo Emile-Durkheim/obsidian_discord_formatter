@@ -5,7 +5,7 @@ import { DEFAULT_SETTINGS, IDiscordFormatterSettings } from "../src/settings";
 
 
 // Only E2E tests because cutting relevant HTML out of HTML files upon every Discord HTML update (which happens more often than one would wish) would be too cumbersome
-describe("E2E general tests with default settings", () => {
+describe("General tests with default settings", () => {
     test("SingleMessage with all TextRuns", async () => {
         const html = await readFile("tests/all_formatting.html", "utf-8");
 
@@ -29,7 +29,7 @@ describe("E2E general tests with default settings", () => {
 })
 
 
-describe("E2E date formats", () => {
+describe("Date formats", () => {
     test("Date format: 'DD'", async () => {
         const settings: IDiscordFormatterSettings = Object.assign(DEFAULT_SETTINGS, { "dateFormat": "DD" })
         const html = await readFile("tests/date.html", "utf-8");
@@ -54,7 +54,7 @@ describe("E2E date formats", () => {
 })
 
 
-describe("E2E SystemMessages", () => {
+describe("SystemMessages", () => {
     test("Show SystemMessage: On", async () => {
         const settings: IDiscordFormatterSettings = Object.assign(DEFAULT_SETTINGS, { "showSystemMessages": true })
         const html = await readFile("tests/systemmessage.html", "utf-8");
@@ -80,7 +80,7 @@ describe("E2E SystemMessages", () => {
 
 
 
-describe("E2E Replies", () => {
+describe("Replies", () => {
     test("Show Replies: Full", async () => {
         const settings: IDiscordFormatterSettings = Object.assign(DEFAULT_SETTINGS, { "showReplies": "full" })
         const html = await readFile("tests/reply_shortening.html", "utf-8");
@@ -116,7 +116,7 @@ describe("E2E Replies", () => {
 })
 
 
-describe("E2E (edited)", () => {
+describe("(edited) mark", () => {
     test("Copy (edited): Plain text", async () => {
         const settings: IDiscordFormatterSettings = Object.assign(DEFAULT_SETTINGS, { "showEdited": "text" })
         const html = await readFile("tests/edited.html", "utf-8");
@@ -147,6 +147,35 @@ describe("E2E (edited)", () => {
             Conversation.fromRawHTML(html).toMarkdown(settings)
         ).toBe(
             ">**Herr**\n>edited message\n>second message below so (edited) above gets copied"
+        )
+    })
+})
+
+
+
+describe("Emoji reactions", () => {
+    test("ignore emoji reactions", async () => {
+        const html = await readFile("tests/reactions.html", "utf-8");
+
+        expect(
+            Conversation.fromRawHTML(html).toMarkdown(DEFAULT_SETTINGS)
+        ).toBe(
+            ">**Herr**\n>message with reactions"
+        )
+    })
+})
+
+
+/** Sometimes, only the HTML container of a message will be copied, without its contents. 
+ * This is expected, and shouldn't break the pasted markdown */
+describe("Empty messages", () => {
+    test("Ignore empty messages", async () => {
+        const html = await readFile("tests/empty_message_error.html", "utf-8");
+
+        expect(
+            Conversation.fromRawHTML(html).toMarkdown(DEFAULT_SETTINGS)
+        ).toBe(
+            ">**Herr**\n>message with empty HTML containers before and after"
         )
     })
 })

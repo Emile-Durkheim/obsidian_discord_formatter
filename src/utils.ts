@@ -24,10 +24,6 @@ export class EmptyMessageError extends Error {
 
 /** Gets image URLs off a given <div id="message-accesories-..."> (which contains all images)*/
 export function parseMessageAttachments(messageAccessoryElem: Element): string[] {
-    if(messageAccessoryElem.nodeName != "DIV" || (!/message-accessories/.test(messageAccessoryElem.id))){
-        throw new CouldNotParseError('messageAccessoryElem not <div id="message-accessories...">')
-    }    
-
     const messageAccessoryImages = Array.from(messageAccessoryElem.querySelectorAll("img")) as HTMLImageElement[];
     return messageAccessoryImages.map((img) => {return img.src});
 }    

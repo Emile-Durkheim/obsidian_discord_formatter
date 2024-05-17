@@ -25,7 +25,7 @@ export default class DiscordFormatter extends Plugin {
 		this.pasteMessageHandler = this.pasteMessage.bind(this);
 		this.dragStartHandler = this.dragStart.bind(this);
 		this.app.workspace.on('editor-paste', this.pasteMessageHandler)
-		this.app.workspace.on("editor-drop", this.dragStartHandler)
+		this.app.workspace.on('editor-drop', this.dragStartHandler)
 	}
 
 
