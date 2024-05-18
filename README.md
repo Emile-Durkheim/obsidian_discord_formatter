@@ -3,9 +3,9 @@ Just drag-and-drop or CTRL+C from the desktop Discord client and paste into Obsi
 
 ### Limitations
 
-The plugin relies on HTML that Discord **usually** serves when you copy a message **via CTRL+C** from the Desktop Client. However, **Discord does not do this reliably**. In 10% of cases, your clipboard contains only raw text, which the plugin can't parse. So you'll have to select the message slightly differently and then try again!
+The plugin relies on HTML that Discord **usually** serves when you copy a message via CTRL+C or drag-and-drop from the Desktop Client. However, **Discord does not do this reliably**. In 10% of cases, your clipboard contains only raw text, which the plugin can't parse. So you'll have to select the message slightly differently and then try again!
 
-**Desktop only, CTRL+C only**: If you try to copy the text out of anything but the Desktop client using the CTRL+C shortcut (or drag-and-drop), your clipboard will only contain raw text which the plugin cannot parse.
+**No right-click copy**: Your computer will only copy the raw text (not the HTML content!) and the plugin will not be able to parse it.
 
 ### Features
 - Paste usernames, message times, message texts directly into your notes
